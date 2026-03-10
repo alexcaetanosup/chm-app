@@ -1,139 +1,200 @@
-.container {
-  padding: 24px;
+/* Container principal que recebe o flex: 1 do layout pai */
+.pageContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background-color: #f8fafc;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
-.header {
+
+/* Cabeçalho da página (Branco) */
+.headerPage {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 24px 24px 0 24px; /* Margens para alinhar com a Sidebar */
+}
+
+/* Área branca onde fica a tabela/dashboard */
+.contentArea {
+  margin: 24px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  flex: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+/* Barra de pesquisa interna */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #fff;
+  margin: 24px 24px 0 24px;
+}
+
+.searchBar input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+/* --- ESTILOS DO MODAL (QUADRADO PREMIUM) --- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+.modal {
+  background: white;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
+}
+
+.headerModal {
+  padding: 20px 24px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+}
+
+.scroll {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  background-color: #fcfcfc;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  color: #03a9f4;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin: 20px 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 15px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  background-color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #03a9f4;
+  box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.1);
+}
+
+/* Rodapé do Modal */
+.footer {
+  padding: 15px 24px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f8fafc;
+}
+
+/* Botões */
+.btnSave {
+  background: #03a9f4;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: filter 0.2s;
+}
+
+.btnSave:hover {
+  filter: brightness(0.95);
+}
+
+.btnCancel {
+  background: white;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btnCancel:hover {
+  background: #f1f5f9;
+}
+.headerPage {
+  position: sticky;
+  top: 0;
+  z-index: 100; /* Garante que ele fique acima do conteúdo */
+  background: white; /* Importante ter fundo para não ficar transparente */
+
+  /* Mantém as propriedades que você já tem */
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-}
-.titleInfo {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.iconCircle {
-  padding: 12px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-}
-.titleInfo h1 {
-  font-size: 1.5rem;
-  color: #1e293b;
-  margin: 0;
-}
-.btnPrimary {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-.searchSection {
-  margin-bottom: 20px;
-}
-.searchWrapper {
-  position: relative;
-  max-width: 500px;
-}
-.searchIcon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-}
-.searchInput {
-  width: 100%;
-  padding: 10px 10px 10px 40px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-}
-.tableCard {
-  background: white;
+  padding: 16px 24px;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.table th {
-  background: #f8fafc;
-  padding: 12px;
-  text-align: left;
-  color: #64748b;
-  font-size: 0.875rem;
-}
-.table td {
-  padding: 12px;
-  border-top: 1px solid #f1f5f9;
-}
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.modalContent {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  width: 500px;
-}
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.formGroup {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-}
-.formGroup label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.formRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
-}
-.btnConfirm {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.btnCancel {
-  background: #f1f5f9;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
 }

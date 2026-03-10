@@ -18,10 +18,12 @@ import './App.css';
 import { Dashboard } from './components/Dashboard/Dashboardd';
 import { Especialidades } from './components/Especialidades/Especialidades';
 import { Lancamentos } from './components/Lancamentos/Lancamentos';
-import MedicoList from './components/Medicos/MedicosList'; // Ajustado para o componente que criamos
-import PacienteList from './components/Pacientes/PacientesList'; // Ajustado para o componente que criamos
+import { Medicos } from './components/Medicos/Medicos';
+import { Pacientes } from './components/Pacientes/Pacientes';
 import { RelatorioItens } from './components/Relatorios/RelatorioItens';
 import { Relatorios } from './components/Relatorios/Relatorios';
+
+// Importação do componente de teste
 
 // DEFINIÇÃO GLOBAL DO NOME
 export const APP_TITLE = "CHM - Caixa de Honorários Médicos";
@@ -32,14 +34,14 @@ const App: React.FC = () => {
 
   const renderConteudo = () => {
     switch (abaAtiva) {
-      case 'pacientes': return <PacienteList />;
-      case 'medicos': return <MedicoList />;
+      case 'pacientes': return <Pacientes />;
+      case 'medicos': return <Medicos />;
       case 'especialidades': return <Especialidades />;
       case 'lancamentos': return <Lancamentos />;
       case 'relatorios': return <Relatorios />;
       case 'relatorio-itens': return <RelatorioItens />;
       case 'dashboard': return <Dashboard />;
-      default: return <PacienteList />;
+      default: return <Pacientes />;
     }
   };
 

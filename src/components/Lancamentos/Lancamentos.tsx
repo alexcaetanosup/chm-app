@@ -210,7 +210,7 @@ export const Lancamentos: React.FC = () => {
                                         </span>
                                     </td>
                                     <td>
-                                        <button className={styles.btnIcon} onClick={() => setSelectedItem(l)}>
+                                        <button className={styles.btnIcon} onClick={() => setSelectedItem(true)}>
                                             <Eye size={18} color="#6366f1" />
                                         </button>
                                     </td>
