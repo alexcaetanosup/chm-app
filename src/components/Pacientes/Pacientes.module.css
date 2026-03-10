@@ -3,141 +3,81 @@
   background-color: #f8fafc;
   min-height: 100vh;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 }
-
 .titleInfo {
   display: flex;
   align-items: center;
   gap: 16px;
 }
-
 .iconCircle {
-  background-color: #6366f1;
   padding: 12px;
   border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
 }
-
 .titleInfo h1 {
   font-size: 1.5rem;
   color: #1e293b;
   margin: 0;
 }
-
-.titleInfo p {
-  color: #64748b;
-  margin: 0;
-  font-size: 0.875rem;
+.btnPrimary {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 600;
 }
-
-/* --- Barra de Busca --- */
 .searchSection {
   margin-bottom: 20px;
 }
-
 .searchWrapper {
   position: relative;
-  display: flex;
-  align-items: center;
   max-width: 500px;
 }
-
 .searchIcon {
   position: absolute;
   left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #94a3b8;
 }
-
 .searchInput {
   width: 100%;
-  padding: 12px 40px;
-  border-radius: 8px;
+  padding: 10px 10px 10px 40px;
   border: 1px solid #e2e8f0;
-  font-size: 0.95rem;
-  transition: all 0.2s;
+  border-radius: 8px;
 }
-
-.searchInput:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.clearSearch {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 4px;
-}
-
-/* --- Tabela --- */
 .tableCard {
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
-
 .table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
 }
-
 .table th {
-  background-color: #f1f5f9;
-  padding: 14px 20px;
-  font-weight: 600;
-  color: #475569;
-  font-size: 0.85rem;
-  text-transform: uppercase;
+  background: #f8fafc;
+  padding: 12px;
+  text-align: left;
+  color: #64748b;
+  font-size: 0.875rem;
 }
-
 .table td {
-  padding: 14px 20px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
+  padding: 12px;
+  border-top: 1px solid #f1f5f9;
 }
-
-.codeCol {
-  font-weight: bold;
-  color: #6366f1;
-}
-.nameCol {
-  font-weight: 500;
-}
-
-.actionsCol {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btnIcon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.btnIcon:hover {
-  background-color: #f1f5f9;
-}
-
-/* --- Modais --- */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -147,87 +87,53 @@
   justify-content: center;
   z-index: 1000;
 }
-
 .modalContent {
   background: white;
-  padding: 32px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border-radius: 12px;
+  width: 500px;
 }
-
 .modalHeader {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
-
 .formGroup {
-  margin-bottom: 16px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
 }
-
 .formGroup label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
-
-.formGroup input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-}
-
 .formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-
-/* --- Animações e Botões --- */
-.spin {
-  animation: spin 1s linear infinite;
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
 }
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.btnPrimary {
-  background-color: #6366f1;
+.btnConfirm {
+  background: #6366f1;
   color: white;
+  border: none;
   padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btnSave {
-  background-color: #10b981;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
-.noData {
-  text-align: center;
-  padding: 40px !important;
-  color: #94a3b8;
+.btnCancel {
+  background: #f1f5f9;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
 }

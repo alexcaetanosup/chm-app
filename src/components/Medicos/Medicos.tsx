@@ -1,122 +1,74 @@
-import { Edit2, Loader2, Search, Stethoscope, Trash2, UserPlus, X } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import { Save, Search, Stethoscope, UserPlus, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './Medicos.module.css';
 
-interface Medico {
-    CDMEDICO: number;
-    DCMEDICO: string;
-    CRM: string;
-    CDESPECIALIDADE: number;
-    ESPECIALIDADE: string;
-    CELULAR: string;
-}
-
 export const Medicos: React.FC = () => {
-    const [medicos, setMedicos] = useState<Medico[]>([]);
+    const [medicos, setMedicos] = useState<any[]>([]);
+    const [especialidades, setEspecialidades] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [busca, setBusca] = useState('');
-    const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [form, setForm] = useState<Partial<Medico>>({
+    const [form, setForm] = useState({
         DCMEDICO: '',
         CRM: '',
-        CDESPECIALIDADE: 0,
+        CDESPECIALIDADE: '',
         CELULAR: ''
     });
 
-    // Função para carregar médicos do servidor
-    const carregarMedicos = useCallback(async (termoBusca: string) => {
+    const carregarDados = async () => {
         setLoading(true);
         try {
-            // Se houver busca, passamos o parâmetro na URL
-            const url = termoBusca
-                ? `http://localhost:4000/api/medicos?nome=${encodeURIComponent(termoBusca)}`
-                : 'http://localhost:4000/api/medicos';
-
-            const res = await fetch(url);
-            const data = await res.json();
-            setMedicos(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error("Erro ao carregar médicos:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    // Efeito de busca com atraso (Debounce)
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            carregarMedicos(busca);
-        }, 400);
-
-        return () => clearTimeout(timer);
-    }, [busca, carregarMedicos]);
-
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const res = await fetch('http://localhost:4000/api/medicos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form)
-            });
-
-            if (res.ok) {
-                setIsModalOpen(false);
-                setForm({ DCMEDICO: '', CRM: '', CDESPECIALIDADE: 0, CELULAR: '' });
-                carregarMedicos(busca);
-            }
-        } catch (err) {
-            console.error("Erro ao salvar médico:", err);
-        }
+            const [resM, resE] = await Promise.all([
+                fetch('http://localhost:4000/api/medicos'),
+                fetch('http://localhost:4000/api/especialidades')
+            ]);
+            setMedicos(await resM.json());
+            setEspecialidades(await resE.json());
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
     };
 
-    const handleEdit = (m: Medico) => {
-        setForm(m);
-        setIsModalOpen(true);
+    useEffect(() => { carregarDados(); }, []);
+
+    const filtrados = useMemo(() => {
+        return medicos.filter(m => m.DCMEDICO?.toUpperCase().includes(busca.toUpperCase()));
+    }, [busca, medicos]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        // Lógica de salvar...
+        setIsModalOpen(false);
+        carregarDados();
     };
 
     return (
         <div className={styles.container}>
             <div className={styles.header}>
                 <div className={styles.titleInfo}>
-                    <div className={styles.iconCircle}>
+                    <div className={styles.iconCircle} style={{ backgroundColor: '#0ea5e9' }}>
                         <Stethoscope color="#fff" />
                     </div>
                     <div>
                         <h1>Corpo Clínico</h1>
-                        <p>{loading ? 'Buscando...' : `${medicos.length} médicos listados`}</p>
+                        <p>{medicos.length} Médicos Ativos</p>
                     </div>
                 </div>
-                <button className={styles.btnPrimary} onClick={() => {
-                    setForm({ DCMEDICO: '', CRM: '', CDESPECIALIDADE: 0, CELULAR: '' });
-                    setIsModalOpen(true);
-                }}>
+                <button className={styles.btnPrimary} onClick={() => setIsModalOpen(true)}>
                     <UserPlus size={20} /> Novo Médico
                 </button>
             </div>
 
-            {/* BARRA DE PESQUISA IGUAL À DE PACIENTES */}
             <div className={styles.searchSection}>
                 <div className={styles.searchWrapper}>
-                    {loading ? (
-                        <Loader2 className={`${styles.searchIcon} ${styles.spin}`} size={20} />
-                    ) : (
-                        <Search className={styles.searchIcon} size={20} />
-                    )}
+                    <Search className={styles.searchIcon} size={20} />
                     <input
                         type="text"
-                        placeholder="Pesquisar médico pelo nome..."
+                        placeholder="Pesquisar médico..."
                         className={styles.searchInput}
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        autoFocus
                     />
-                    {busca && (
-                        <button className={styles.clearSearch} onClick={() => setBusca('')}>
-                            <X size={16} />
-                        </button>
-                    )}
                 </div>
             </div>
 
@@ -124,47 +76,62 @@ export const Medicos: React.FC = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
+                            <th>Cód.</th>
                             <th>Nome do Médico</th>
-                            <th>Especialidade</th>
                             <th>CRM</th>
-                            <th>Celular</th>
-                            <th style={{ textAlign: 'right' }}>Ações</th>
+                            <th>Especialidade</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {medicos.length > 0 ? (
-                            medicos.map((m) => (
-                                <tr key={m.CDMEDICO}>
-                                    <td className={styles.nameCol}>{m.DCMEDICO}</td>
-                                    <td>
-                                        <span className={styles.especialidadeBadge}>
-                                            {m.ESPECIALIDADE || 'Não definida'}
-                                        </span>
-                                    </td>
-                                    <td className={styles.crmText}>{m.CRM}</td>
-                                    <td>{m.CELULAR || '---'}</td>
-                                    <td className={styles.actionsCol}>
-                                        <button className={styles.btnIcon} onClick={() => handleEdit(m)}>
-                                            <Edit2 size={18} color="#0ea5e9" />
-                                        </button>
-                                        <button className={styles.btnIcon}>
-                                            <Trash2 size={18} color="#ef4444" />
-                                        </button>
-                                    </td>
+                        {loading ? (
+                            <tr><td colSpan={4} className={styles.noData}>A carregar...</td></tr>
+                        ) : (
+                            filtrados.map((m, i) => (
+                                <tr key={i}>
+                                    <td className={styles.codeCol}>{m.CDMEDICO}</td>
+                                    <td><strong>{m.DCMEDICO}</strong></td>
+                                    <td>{m.CRM}</td>
+                                    <td><span className={styles.badge}>{m.ESPECIALIDADE}</span></td>
                                 </tr>
                             ))
-                        ) : (
-                            <tr>
-                                <td colSpan={5} className={styles.noData}>
-                                    {loading ? 'Consultando banco...' : 'Nenhum médico encontrado.'}
-                                </td>
-                            </tr>
                         )}
                     </tbody>
                 </table>
             </div>
 
-            {/* O Modal continua aqui... */}
+            {isModalOpen && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h2>Cadastro de Médico</h2>
+                            <button onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className={styles.formGroup}>
+                                <label>Nome Completo</label>
+                                <input required value={form.DCMEDICO} onChange={e => setForm({ ...form, DCMEDICO: e.target.value.toUpperCase() })} />
+                            </div>
+                            <div className={styles.formRow}>
+                                <div className={styles.formGroup}><label>CRM</label>
+                                    <input value={form.CRM} onChange={e => setForm({ ...form, CRM: e.target.value })} />
+                                </div>
+                                <div className={styles.formGroup}><label>Especialidade</label>
+                                    <input list="lista-esp" value={form.CDESPECIALIDADE} onChange={e => setForm({ ...form, CDESPECIALIDADE: e.target.value })} />
+                                    <datalist id="lista-esp">
+                                        {especialidades.map(e => <option key={e.CDESPECIAL} value={e.DSESPECIAL} />)}
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div className={styles.modalActions}>
+                                <button type="button" className={styles.btnCancel} onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                                <button type="submit" className={styles.btnConfirm} style={{ backgroundColor: '#0ea5e9' }}>
+                                    <Save size={18} /> Salvar Médico
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
