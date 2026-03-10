@@ -1,26 +1,144 @@
-import React from 'react';
-import logo from './logo.svg';
+import {
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  DollarSign,
+  FileText,
+  LayoutDashboard,
+  ListFilter,
+  Stethoscope,
+  Users
+} from 'lucide-react';
+import React, { useState } from 'react';
+
+// Importação do CSS
 import './App.css';
 
-function App() {
+// Importação dos componentes
+import { Dashboard } from './components/Dashboard/Dashboardd';
+import { Especialidades } from './components/Especialidades/Especialidades';
+import { Lancamentos } from './components/Lancamentos/Lancamentos';
+import MedicoList from './components/Medicos/MedicosList'; // Ajustado para o componente que criamos
+import PacienteList from './components/Pacientes/PacientesList'; // Ajustado para o componente que criamos
+import { RelatorioItens } from './components/Relatorios/RelatorioItens';
+import { Relatorios } from './components/Relatorios/Relatorios';
+
+// DEFINIÇÃO GLOBAL DO NOME
+export const APP_TITLE = "CHM - Caixa de Honorários Médicos";
+
+const App: React.FC = () => {
+  const [abaAtiva, setAbaAtiva] = useState('pacientes');
+  const [relatoriosAberto, setRelatoriosAberto] = useState(true);
+
+  const renderConteudo = () => {
+    switch (abaAtiva) {
+      case 'pacientes': return <PacienteList />;
+      case 'medicos': return <MedicoList />;
+      case 'especialidades': return <Especialidades />;
+      case 'lancamentos': return <Lancamentos />;
+      case 'relatorios': return <Relatorios />;
+      case 'relatorio-itens': return <RelatorioItens />;
+      case 'dashboard': return <Dashboard />;
+      default: return <PacienteList />;
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app-container">
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h2>{APP_TITLE.split(' - ')[0]} Gestão</h2>
+          <p>{APP_TITLE.split(' - ')[1]}</p>
+        </div>
+
+        <nav>
+          <ul className="nav-list">
+            <MenuItem
+              label="Dashboard"
+              icon={<LayoutDashboard size={20} />}
+              active={abaAtiva === 'dashboard'}
+              onClick={() => setAbaAtiva('dashboard')}
+            />
+            <MenuItem
+              label="Pacientes"
+              icon={<Users size={20} />}
+              active={abaAtiva === 'pacientes'}
+              onClick={() => setAbaAtiva('pacientes')}
+            />
+            <MenuItem
+              label="Médicos"
+              icon={<Stethoscope size={20} />}
+              active={abaAtiva === 'medicos'}
+              onClick={() => setAbaAtiva('medicos')}
+            />
+            <MenuItem
+              label="Especialidades"
+              icon={<ClipboardList size={20} />}
+              active={abaAtiva === 'especialidades'}
+              onClick={() => setAbaAtiva('especialidades')}
+            />
+            <MenuItem
+              label="Lançamentos"
+              icon={<DollarSign size={20} />}
+              active={abaAtiva === 'lancamentos'}
+              onClick={() => setAbaAtiva('lancamentos')}
+            />
+
+            <li>
+              <div
+                className={`menu-item relatorios-button ${(abaAtiva.includes('relatorio')) ? 'active' : ''}`}
+                onClick={() => setRelatoriosAberto(!relatoriosAberto)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <FileText size={20} />
+                  <span className="menu-item-label">Relatórios</span>
+                </div>
+                {relatoriosAberto ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+
+              {relatoriosAberto && (
+                <ul className="submenu-list">
+                  <SubMenuItem
+                    label="Painel Geral"
+                    icon={<ListFilter size={18} />}
+                    active={abaAtiva === 'relatorios'}
+                    onClick={() => setAbaAtiva('relatorios')}
+                  />
+                  <SubMenuItem
+                    label="Analítico Itens"
+                    icon={<ClipboardList size={18} />}
+                    active={abaAtiva === 'relatorio-itens'}
+                    onClick={() => setAbaAtiva('relatorio-itens')}
+                  />
+                </ul>
+              )}
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main className="main-content">
+        <div className="content-container">
+          {renderConteudo()}
+        </div>
+      </main>
     </div>
   );
-}
+};
+
+// Componentes Auxiliares
+const MenuItem = ({ label, icon, active, onClick }: any) => (
+  <li className={`menu-item ${active ? 'active' : ''}`} onClick={onClick}>
+    {icon}
+    <span className="menu-item-label">{label}</span>
+  </li>
+);
+
+const SubMenuItem = ({ label, icon, active, onClick }: any) => (
+  <li className={`submenu-item ${active ? 'active' : ''}`} onClick={onClick}>
+    {icon}
+    <span>{label}</span>
+  </li>
+);
 
 export default App;

@@ -1,0 +1,174 @@
+.container_Med {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 24px;
+  background-color: #f8fafc;
+  overflow: hidden;
+}
+
+.header_Med {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.iconCircle_Med {
+  background-color: #2563eb;
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- BUSCA E TABELA --- */
+.searchSection_Med {
+  margin-bottom: 20px;
+}
+
+.searchWrapper_Med {
+  position: relative;
+  max-width: 450px;
+}
+
+.searchInput_Med {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+}
+
+.tableCard_Med {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.table_Med {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table_Med th {
+  background: #f8fafc;
+  padding: 14px 20px;
+  text-align: left;
+  color: #64748b;
+  font-size: 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* --- MODAL (Onde estava o erro) --- */
+.modalOverlay_Med {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modalContent_Med {
+  background: #ffffff !important; /* Força o fundo branco */
+  border-radius: 16px;
+  width: 95%;
+  max-width: 1000px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.modalHeader_Med {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalForm_Med {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.mainGrid_Med {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.sectionTitle_Med {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 5px;
+}
+
+.formGroup_Med {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.formGroup_Med label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.formGroup_Med input,
+.formGroup_Med select,
+.textarea_Med {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+}
+
+.textarea_Med {
+  height: 100px;
+  resize: none;
+}
+
+/* --- BOTÕES --- */
+.modalActions_Med {
+  padding: 15px 24px 25px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #fff;
+}
+
+.btnConfirm_Med {
+  background: #10b981;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnCancel_Med {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: #64748b;
+  cursor: pointer;
+}
