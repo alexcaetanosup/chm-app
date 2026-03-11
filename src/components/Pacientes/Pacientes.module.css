@@ -1,35 +1,197 @@
-/* Container principal que recebe o flex: 1 do layout pai */
 .pageContainer {
-  height: 100vh; /* Ocupa a altura exata da tela */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* IMPEDE que a página inteira role */
-  background-color: #f8fafc;
+  background: #f8fafc;
+  height: 100vh;
+  overflow: hidden;
 }
-
-/* Cabeçalho da página (Branco) */
 .headerPage {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: white;
   padding: 16px 24px;
+  margin: 20px;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin: 24px 24px 0 24px; /* Margens para alinhar com a Sidebar */
 }
-
-/* Área branca onde fica a tabela/dashboard */
 .contentArea {
-  margin: 24px;
+  margin: 0 20px 20px 20px;
   background: white;
   border-radius: 12px;
   padding: 20px;
   flex: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tableWrapper {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 15px;
 }
 
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: white;
+  width: 95%;
+  max-width: 950px;
+  border-radius: 16px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+.headerModal {
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.scrollForm {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.grid12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.fGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fGroup label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+.fGroup input,
+.fGroup select,
+.fGroup textarea {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.fGroup input:focus {
+  border-color: #0ea5e9;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0ea5e9;
+  border-bottom: 2px solid #f1f5f9;
+  margin: 10px 0 15px 0;
+  padding-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.footer {
+  padding: 15px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f8fafc;
+  border-radius: 0 0 16px 16px;
+}
+.btnSave {
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btnCancel {
+  background: white;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th {
+  text-align: left;
+  padding: 12px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+  position: sticky;
+  top: 0;
+}
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+.sugestoesList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  z-index: 100;
+  list-style: none;
+  padding: 0;
+  margin-top: 4px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.sugestoesList li {
+  padding: 10px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+.sugestoesList li:hover {
+  background-color: #f0f9ff;
+}
+
+.sugestoesList li strong {
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.sugestoesList li span {
+  font-size: 11px;
+  color: #64748b;
+}
 .searchBar {
   display: flex;
   align-items: center;
@@ -43,6 +205,13 @@
   transition: border-color 0.2s;
 }
 
+.iconCircle {
+  background-color: #0ea5e9;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+}
+
 .searchBar:focus-within {
   border-color: #3b82f6; /* Cor azul ao clicar para digitar */
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -54,186 +223,4 @@
   width: 100%;
   font-size: 16px; /* Aumentamos a fonte para 16px para melhor leitura */
   color: #1e293b;
-}
-.iconCircle {
-  background-color: #0ea5e9;
-  padding: 10px;
-  border-radius: 50%;
-  display: flex;
-}
-/* --- ESTILOS DO MODAL (QUADRADO PREMIUM) --- */
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(15, 23, 42, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  backdrop-filter: blur(4px);
-  padding: 20px;
-}
-
-.modal {
-  background: white;
-  width: 100%;
-  max-width: 900px;
-  max-height: 90vh;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.2);
-}
-
-.headerModal {
-  padding: 20px 24px;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-}
-
-.scroll {
-  padding: 24px;
-  overflow-y: auto;
-  flex: 1;
-  background-color: #fcfcfc;
-}
-
-.sectionTitle {
-  font-size: 12px;
-  color: #03a9f4;
-  font-weight: bold;
-  text-transform: uppercase;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
-  margin: 20px 0 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 15px;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-.input {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-size: 14px;
-  background-color: #fff;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.input:focus {
-  border-color: #03a9f4;
-  box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.1);
-}
-
-/* Rodapé do Modal */
-.footer {
-  padding: 15px 24px;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  background: #f8fafc;
-}
-
-/* Botões */
-.btnSave {
-  background: #03a9f4;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: filter 0.2s;
-}
-
-.btnSave:hover {
-  filter: brightness(0.95);
-}
-
-.btnCancel {
-  background: white;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btnCancel:hover {
-  background: #f1f5f9;
-}
-.headerPage {
-  position: sticky;
-  top: 0;
-  z-index: 100; /* Garante que ele fique acima do conteúdo */
-  background: white; /* Importante ter fundo para não ficar transparente */
-
-  /* Mantém as propriedades que você já tem */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 16px 24px;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.table th:first-child,
-.table td:first-child {
-  padding-left: 14px; /* Isso empurra o CÓD. para a direita */
-  text-align: right;
-}
-
-.tableWrapper {
-  flex: 1; /* Faz a tabela ocupar todo o resto do espaço */
-  overflow-y: auto; /* HABILITA o scroll apenas aqui */
-  margin: 0 24px 24px 24px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-/* Fixar o topo da tabela (os nomes das colunas) */
-.table thead th {
-  position: sticky;
-  top: 0;
-  background: #f1f5f9;
-  z-index: 5;
-  box-shadow: inset 0 -1px 0 #e2e8f0; /* Linha de divisão */
-}
-
-/* Envolve o HeaderPage e a SearchBar */
-.fixedHeader {
-  flex-shrink: 0; /* Não deixa o cabeçalho "esmagar" */
-  z-index: 10;
-  background-color: #f8fafc;
 }

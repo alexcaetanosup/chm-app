@@ -26,9 +26,11 @@ export const Pacientes: React.FC = () => {
 
     const [form, setForm] = useState(initialForm);
 
+    // MÁSCARAS (Mantidas)
     const mCEP = (v: string) => v.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2').substring(0, 9);
     const mCPF = (v: string) => v.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
 
+    // NAVEGAÇÃO POR ENTER (Mantida)
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'submit') {
             e.preventDefault();
@@ -38,6 +40,7 @@ export const Pacientes: React.FC = () => {
         }
     };
 
+    // CONSULTA VIACEP (Mantida)
     const buscarCEP = async (cep: string) => {
         const value = cep.replace(/\D/g, '');
         if (value.length === 8) {
@@ -67,35 +70,48 @@ export const Pacientes: React.FC = () => {
 
     useEffect(() => { carregaDados(); }, []);
 
+    // SUBMIT CORRIGIDO (Removido o ID da URL para evitar o erro 404/Cannot PUT)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const isUpdate = !!form.CDPACIENTE;
-        // AJUSTE: Se for update, envia para a rota com ID para evitar erro do servidor
-        const url = isUpdate
-            ? `http://localhost:4000/api/pacientes/${form.CDPACIENTE}`
-            : 'http://localhost:4000/api/pacientes';
 
+        // Validação de Homônimos (Mantida)
+        const homonimo = pacientes.find(p =>
+            p.DCPACIENTE.trim().toUpperCase() === form.DCPACIENTE.trim().toUpperCase() &&
+            p.CDPACIENTE !== form.CDPACIENTE
+        );
+
+        if (homonimo) {
+            alert(`Atenção: Já existe um paciente cadastrado com o nome "${form.DCPACIENTE}". (Cód: ${homonimo.CDPACIENTE})`);
+            return;
+        }
+
+        const isUpdate = !!form.CDPACIENTE;
+        // AJUSTE AQUI: O seu servidor não aceita o ID na URL, então usamos a rota base para ambos
+        const url = 'http://localhost:4000/api/pacientes';
         const method = isUpdate ? 'PUT' : 'POST';
 
         try {
             const response = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form)
+                body: JSON.stringify(form) // O CDPACIENTE vai aqui dentro, que é como seu servidor identifica o registro
             });
 
             if (response.ok) {
                 setIsModalOpen(false);
                 setForm(initialForm);
                 carregaDados();
-                alert(isUpdate ? "Atualizado com sucesso!" : "Cadastrado com sucesso!");
+                alert(isUpdate ? "Paciente atualizado com sucesso!" : "Paciente cadastrado com sucesso!");
             } else {
-                const txt = await response.text();
-                alert("Erro no servidor: " + txt);
+                const errorMsg = await response.text();
+                alert("Erro ao salvar: " + errorMsg);
             }
-        } catch (error) { console.error("Erro na rotina:", error); }
+        } catch (error) {
+            console.error("Erro na rotina:", error);
+        }
     };
 
+    // SUGESTÕES (Mantida)
     const handleNomeChange = (valor: string) => {
         const nomeUpper = valor.toUpperCase();
         setForm({ ...form, DCPACIENTE: nomeUpper });
@@ -103,8 +119,9 @@ export const Pacientes: React.FC = () => {
         if (nomeUpper.length > 2) {
             const filtrados = pacientes.filter(p =>
                 p.DCPACIENTE.toUpperCase().includes(nomeUpper) &&
-                String(p.CDPACIENTE) !== String(form.CDPACIENTE)
+                p.CDPACIENTE !== form.CDPACIENTE
             ).slice(0, 5);
+
             setSugestoes(filtrados);
             setMostrarSugestoes(filtrados.length > 0);
         } else {
@@ -146,8 +163,8 @@ export const Pacientes: React.FC = () => {
                             {pacientes.filter(p => p.DCPACIENTE?.toUpperCase().includes(busca.toUpperCase())).map(p => (
                                 <tr key={p.CDPACIENTE}>
                                     <td style={{ textAlign: 'center' }}>{p.CDPACIENTE}</td>
-                                    <td><strong>{p.DCPACIENTE}</strong></td>
-                                    <td style={{ textAlign: 'center' }}>{p.CPF}</td>
+                                    <td style={{ width: '500px' }}><strong>{p.DCPACIENTE}</strong></td>
+                                    <td style={{ textAlign: 'right', width: '100px' }}>{p.CPF}</td>
                                     <td style={{ textAlign: 'right' }}>{p.CELULAR}</td>
                                     <td style={{ textAlign: 'center' }}>
                                         <Edit size={18} style={{ cursor: 'pointer', marginRight: '10px', color: '#64748b' }} onClick={() => { setForm(p); setIsModalOpen(true); }} />
@@ -171,110 +188,79 @@ export const Pacientes: React.FC = () => {
                             <X onClick={() => setIsModalOpen(false)} style={{ cursor: 'pointer' }} />
                         </div>
 
-                        {/* AJUSTE: Nome da classe corrigido para scrollForm */}
-                        <div className={styles.scrollForm}>
+                        <div className={styles.scroll}>
                             <div className={styles.sectionTitle}>Identificação Principal</div>
-                            {/* AJUSTE: Nome da classe corrigido para grid12 */}
-                            <div className={styles.grid12}>
-                                <div style={{ gridColumn: 'span 8', position: 'relative' }} className={styles.fGroup}>
-                                    <label>NOME COMPLETO (DCPACIENTE)</label>
-                                    <input required value={form.DCPACIENTE} onChange={e => handleNomeChange(e.target.value)} onBlur={() => setTimeout(() => setMostrarSugestoes(false), 200)} />
+                            <div className={styles.grid}>
+                                <div style={{ gridColumn: 'span 8', position: 'relative' }} className={styles.formGroup}>
+                                    <label className={styles.label}>NOME COMPLETO</label>
+                                    <input
+                                        className={styles.input}
+                                        required
+                                        value={form.DCPACIENTE}
+                                        onChange={e => handleNomeChange(e.target.value)}
+                                        onBlur={() => setTimeout(() => setMostrarSugestoes(false), 200)}
+                                    />
                                     {mostrarSugestoes && (
                                         <ul className={styles.sugestoesList}>
                                             {sugestoes.map(p => (
                                                 <li key={p.CDPACIENTE} onClick={() => { setForm(p); setMostrarSugestoes(false); }}>
-                                                    <strong>{p.DCPACIENTE}</strong> (Cod: {p.CDPACIENTE})
+                                                    <strong>{p.DCPACIENTE}</strong>
+                                                    <span>Cod: {p.CDPACIENTE} | CPF: {p.CPF}</span>
                                                 </li>
                                             ))}
                                         </ul>
                                     )}
                                 </div>
-                                <div style={{ gridColumn: 'span 4' }} className={styles.fGroup}>
-                                    <label>APELIDO (PACIENTE)</label>
-                                    <input value={form.PACIENTE} onChange={e => setForm({ ...form, PACIENTE: e.target.value.toUpperCase() })} />
+                                <div style={{ gridColumn: 'span 4' }} className={styles.formGroup}>
+                                    <label className={styles.label}>APELIDO</label>
+                                    <input className={styles.input} value={form.PACIENTE} onChange={e => setForm({ ...form, PACIENTE: e.target.value.toUpperCase() })} />
                                 </div>
-                                <div style={{ gridColumn: 'span 4' }} className={styles.fGroup}>
-                                    <label>CPF</label>
-                                    <input value={form.CPF} onChange={e => setForm({ ...form, CPF: mCPF(e.target.value) })} />
+                                <div style={{ gridColumn: 'span 4' }} className={styles.formGroup}>
+                                    <label className={styles.label}>CPF</label>
+                                    <input className={styles.input} value={form.CPF} onChange={e => setForm({ ...form, CPF: mCPF(e.target.value) })} />
                                 </div>
-                                <div style={{ gridColumn: 'span 4' }} className={styles.fGroup}>
-                                    <label>RG</label>
-                                    <input value={form.RG} onChange={e => setForm({ ...form, RG: e.target.value })} />
+                                <div style={{ gridColumn: 'span 3' }} className={styles.formGroup}>
+                                    <label className={styles.label}>RG</label>
+                                    <input className={styles.input} value={form.RG} onChange={e => setForm({ ...form, RG: e.target.value })} />
                                 </div>
-                                <div style={{ gridColumn: 'span 2' }} className={styles.fGroup}>
-                                    <label>SEXO</label>
-                                    <select value={form.SEXO} onChange={e => setForm({ ...form, SEXO: e.target.value })}>
+                                <div style={{ gridColumn: 'span 3' }} className={styles.formGroup}>
+                                    <label className={styles.label}>SEXO</label>
+                                    <select className={styles.input} value={form.SEXO} onChange={e => setForm({ ...form, SEXO: e.target.value })}>
                                         <option value="M">MASCULINO</option>
                                         <option value="F">FEMININO</option>
                                     </select>
                                 </div>
-                                <div style={{ gridColumn: 'span 2' }} className={styles.fGroup}>
-                                    <label>RECIBO</label>
-                                    <input value={form.RECIBO} onChange={e => setForm({ ...form, RECIBO: e.target.value.toUpperCase() })} />
+                                <div style={{ gridColumn: 'span 2' }} className={styles.formGroup}>
+                                    <label className={styles.label}>RECIBO</label>
+                                    <input className={styles.input} value={form.RECIBO} onChange={e => setForm({ ...form, RECIBO: e.target.value.toUpperCase() })} />
                                 </div>
                             </div>
 
-                            <div className={styles.sectionTitle}>Contato e Localização (1)</div>
-                            <div className={styles.grid12}>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>CELULAR</label>
-                                    <input value={form.CELULAR} onChange={e => setForm({ ...form, CELULAR: e.target.value })} />
+                            <div className={styles.sectionTitle}>Contato</div>
+                            <div className={styles.grid}>
+                                <div style={{ gridColumn: 'span 6' }} className={styles.formGroup}>
+                                    <label className={styles.label}>CELULAR</label>
+                                    <input className={styles.input} value={form.CELULAR} onChange={e => setForm({ ...form, CELULAR: e.target.value })} />
                                 </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>TELEFONE</label>
-                                    <input value={form.TELEFONE} onChange={e => setForm({ ...form, TELEFONE: e.target.value })} />
-                                </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>CEP</label>
-                                    <input value={form.CEP} onChange={e => { setForm({ ...form, CEP: mCEP(e.target.value) }); buscarCEP(e.target.value); }} />
-                                </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>UF</label>
-                                    <input maxLength={2} value={form.UF} onChange={e => setForm({ ...form, UF: e.target.value.toUpperCase() })} />
-                                </div>
-                                <div style={{ gridColumn: 'span 6' }} className={styles.fGroup}>
-                                    <label>ENDEREÇO</label>
-                                    <input value={form.ENDERECO} onChange={e => setForm({ ...form, ENDERECO: e.target.value.toUpperCase() })} />
-                                </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>BAIRRO</label>
-                                    <input value={form.BAIRRO} onChange={e => setForm({ ...form, BAIRRO: e.target.value.toUpperCase() })} />
-                                </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>CIDADE</label>
-                                    <input value={form.CIDADE} onChange={e => setForm({ ...form, CIDADE: e.target.value.toUpperCase() })} />
+                                <div style={{ gridColumn: 'span 6' }} className={styles.formGroup}>
+                                    <label className={styles.label}>TELEFONE FIXO</label>
+                                    <input className={styles.input} value={form.TELEFONE} onChange={e => setForm({ ...form, TELEFONE: e.target.value })} />
                                 </div>
                             </div>
 
-                            <div className={styles.sectionTitle}>Endereço Secundário (2)</div>
-                            <div className={styles.grid12}>
-                                <div style={{ gridColumn: 'span 5' }} className={styles.fGroup}>
-                                    <label>ENDEREÇO 2</label>
-                                    <input value={form.ENDERECO2} onChange={e => setForm({ ...form, ENDERECO2: e.target.value.toUpperCase() })} />
+                            <div className={styles.sectionTitle}>Endereço</div>
+                            <div className={styles.grid}>
+                                <div style={{ gridColumn: 'span 3' }} className={styles.formGroup}>
+                                    <label className={styles.label}>CEP</label>
+                                    <input className={styles.input} value={form.CEP} onChange={e => { setForm({ ...form, CEP: mCEP(e.target.value) }); buscarCEP(e.target.value); }} />
                                 </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>BAIRRO 2</label>
-                                    <input value={form.BAIRRO2} onChange={e => setForm({ ...form, BAIRRO2: e.target.value.toUpperCase() })} />
+                                <div style={{ gridColumn: 'span 7' }} className={styles.formGroup}>
+                                    <label className={styles.label}>ENDEREÇO</label>
+                                    <input className={styles.input} value={form.ENDERECO} onChange={e => setForm({ ...form, ENDERECO: e.target.value.toUpperCase() })} />
                                 </div>
-                                <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
-                                    <label>CIDADE 2</label>
-                                    <input value={form.CIDADE2} onChange={e => setForm({ ...form, CIDADE2: e.target.value.toUpperCase() })} />
-                                </div>
-                                <div style={{ gridColumn: 'span 1' }} className={styles.fGroup}>
-                                    <label>UF 2</label>
-                                    <input maxLength={2} value={form.UF2} onChange={e => setForm({ ...form, UF2: e.target.value.toUpperCase() })} />
-                                </div>
-                            </div>
-
-                            <div className={styles.sectionTitle}>Complementos</div>
-                            <div className={styles.grid12}>
-                                <div style={{ gridColumn: 'span 12' }} className={styles.fGroup}>
-                                    <label>URL DA FOTO (FOTO-PACIENTE)</label>
-                                    <input value={form["FOTO-PACIENTE"]} onChange={e => setForm({ ...form, "FOTO-PACIENTE": e.target.value })} />
-                                </div>
-                                <div style={{ gridColumn: 'span 12' }} className={styles.fGroup}>
-                                    <label>OBSERVAÇÕES</label>
-                                    <textarea rows={3} value={form.OBSERVA} onChange={e => setForm({ ...form, OBSERVA: e.target.value.toUpperCase() })} />
+                                <div style={{ gridColumn: 'span 2' }} className={styles.formGroup}>
+                                    <label className={styles.label}>UF</label>
+                                    <input className={styles.input} maxLength={2} value={form.UF} onChange={e => setForm({ ...form, UF: e.target.value.toUpperCase() })} />
                                 </div>
                             </div>
                         </div>

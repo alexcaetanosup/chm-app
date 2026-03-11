@@ -65,7 +65,7 @@ export const Especialidades: React.FC = () => {
             <div className={styles.fixedHeader}>
                 <div className={styles.headerPage}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <div className={styles.iconCircle} style={{ backgroundColor: '#3b82f6' }}>
+                        <div className={styles.iconCircle} style={{ backgroundColor: '#0ea5e9' }}>
                             <Stethoscope color="#fff" size={24} />
                         </div>
                         <div>
