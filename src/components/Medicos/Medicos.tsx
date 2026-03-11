@@ -1,4 +1,4 @@
-import { Save, Search, Stethoscope, UserPlus, X } from 'lucide-react';
+import { Edit, FileText, MapPin, Save, Search, Stethoscope, Trash2, UserPlus, X } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './Medicos.module.css';
 
@@ -9,15 +9,16 @@ export const Medicos: React.FC = () => {
     const [busca, setBusca] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [form, setForm] = useState({
-        DCMEDICO: '',
-        CRM: '',
-        CDESPECIALIDADE: '',
-        CELULAR: ''
-    });
+    const initialForm = {
+        CDMEDICO: '', DCMEDICO: '', DATANASC: '', CPF: '', CRM: '',
+        CDESPECIALIDADE: '', DCESPECIAL: '', CELULAR: '', TELEFONE: '',
+        CEP: '', ENDERECO: '', BAIRRO: '', CIDADE: '', UF: '',
+        OBSERVA: '', "FOTO-MED": ''
+    };
+
+    const [form, setForm] = useState(initialForm);
 
     const carregarDados = async () => {
-        setLoading(true);
         try {
             const [resM, resE] = await Promise.all([
                 fetch('http://localhost:4000/api/medicos'),
@@ -31,105 +32,215 @@ export const Medicos: React.FC = () => {
 
     useEffect(() => { carregarDados(); }, []);
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === 'Enter') {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'TEXTAREA') return;
+            e.preventDefault();
+            const focusableElements = e.currentTarget.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+                'input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+            );
+            const index = Array.from(focusableElements).indexOf(target as any);
+            if (index > -1 && index < focusableElements.length - 1) {
+                focusableElements[index + 1].focus();
+            }
+        }
+    };
+
+    const mCPF = (v: string) => v.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
+    const mCEP = (v: string) => v.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2').substring(0, 9);
+    const mCel = (v: string) => v.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2').substring(0, 15);
+    const mTel = (v: string) => v.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2').substring(0, 14);
+
+    const buscarCEP = async (cep: string) => {
+        const cleanCEP = cep.replace(/\D/g, '');
+        if (cleanCEP.length === 8) {
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cleanCEP}/json/`);
+                const data = await res.json();
+                if (!data.erro) {
+                    setForm(prev => ({
+                        ...prev,
+                        ENDERECO: data.logradouro.toUpperCase(),
+                        BAIRRO: data.bairro.toUpperCase(),
+                        CIDADE: data.localidade.toUpperCase(),
+                        UF: data.uf.toUpperCase()
+                    }));
+                }
+            } catch (err) { console.error(err); }
+        }
+    };
+
     const filtrados = useMemo(() => {
-        return medicos.filter(m => m.DCMEDICO?.toUpperCase().includes(busca.toUpperCase()));
+        return medicos.filter((m: any) => m.DCMEDICO?.toUpperCase().includes(busca.toUpperCase()) || m.CRM?.includes(busca));
     }, [busca, medicos]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Lógica de salvar...
-        setIsModalOpen(false);
-        carregarDados();
+        try {
+            const response = await fetch('http://localhost:4000/api/medicos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form)
+            });
+            if (response.ok) {
+                alert("Médico gravado com sucesso!");
+                setIsModalOpen(false);
+                carregarDados();
+                setForm(initialForm);
+            } else {
+                const erro = await response.json();
+                alert("Erro no servidor: " + erro.error);
+            }
+        } catch (err) {
+            alert("Erro de ligação ao servidor.");
+        }
+    };
+
+    // 1. Adicione esta função dentro do componente Medicos
+    const excluirMedico = async (id: number, nome: string) => {
+        if (window.confirm(`Tem certeza que deseja excluir o médico ${nome}?`)) {
+            try {
+                const response = await fetch(`http://localhost:4000/api/medicos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert("Médico removido!");
+                    carregarDados(); // Atualiza a lista após excluir
+                } else {
+                    const erro = await response.json();
+                    alert(erro.error);
+                }
+            } catch (err) {
+                alert("Erro ao tentar excluir o médico.");
+            }
+        }
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.titleInfo}>
-                    <div className={styles.iconCircle} style={{ backgroundColor: '#0ea5e9' }}>
-                        <Stethoscope color="#fff" />
-                    </div>
+        <div className={styles.pageContainer}>
+            <div className={styles.headerPage}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div className={styles.iconCircle}><Stethoscope color="#fff" size={24} /></div>
                     <div>
-                        <h1>Corpo Clínico</h1>
-                        <p>{medicos.length} Médicos Ativos</p>
+                        <h2 style={{ margin: 0, fontSize: '22px' }}>Corpo Clínico</h2>
+                        <small style={{ color: '#64748b' }}>Gestão de Profissionais</small>
                     </div>
                 </div>
-                <button className={styles.btnPrimary} onClick={() => setIsModalOpen(true)}>
-                    <UserPlus size={20} /> Novo Médico
+                <div className={styles.searchBar}>
+                    <Search size={18} color="#94a3b8" />
+                    <input type="text" placeholder="Pesquisar por nome ou CRM..." value={busca} onChange={(e) => setBusca(e.target.value)} />
+                </div>
+                <button className={styles.btnSave} onClick={() => setIsModalOpen(true)}>
+                    <UserPlus size={18} /> NOVO MÉDICO
                 </button>
             </div>
 
-            <div className={styles.searchSection}>
-                <div className={styles.searchWrapper}>
-                    <Search className={styles.searchIcon} size={20} />
-                    <input
-                        type="text"
-                        placeholder="Pesquisar médico..."
-                        className={styles.searchInput}
-                        value={busca}
-                        onChange={(e) => setBusca(e.target.value)}
-                    />
+
+
+            <div className={styles.contentArea}>
+                <div className={styles.tableCard}>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>CÓDIGO</th>
+                                <th>NOME DO PROFISSIONAL</th>
+                                <th>CRM</th>
+                                <th>ESPECIALIDADE</th>
+                                <th style={{ textAlign: 'right' }}>CELULAR</th>
+                                <th style={{ textAlign: 'center' }}>AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Carregando...</td></tr>
+                            ) : (
+                                filtrados.map((m: any) => (
+                                    <tr key={m.CDMEDICO || Math.random()}>
+                                        <td>{m.CDMEDICO}</td>
+                                        <td><strong>{m.DCMEDICO}</strong></td>
+                                        <td>{m.CRM}</td>
+                                        <td><span className={styles.badge}>{m.DCESPECIAL}</span></td>
+                                        <td style={{ textAlign: 'right' }}>{m.CELULAR}</td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                                                <Edit
+                                                    size={16}
+                                                    color="#1e293b"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => {
+                                                        setForm(m);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                />
+                                                <Trash2
+                                                    size={16}
+                                                    color="#ef4444"
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => excluirMedico(m.CDMEDICO, m.DCMEDICO)}
+                                                />
+                                                {/* <Trash2 size={16} color="#ef4444" style={{ cursor: 'pointer' }} /> */}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div className={styles.tableCard}>
-                <table className={styles.table}>
-                    <thead>
-                        <tr>
-                            <th>Cód.</th>
-                            <th>Nome do Médico</th>
-                            <th>CRM</th>
-                            <th>Especialidade</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan={4} className={styles.noData}>A carregar...</td></tr>
-                        ) : (
-                            filtrados.map((m, i) => (
-                                <tr key={i}>
-                                    <td className={styles.codeCol}>{m.CDMEDICO}</td>
-                                    <td><strong>{m.DCMEDICO}</strong></td>
-                                    <td>{m.CRM}</td>
-                                    <td><span className={styles.badge}>{m.ESPECIALIDADE}</span></td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
             {isModalOpen && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Cadastro de Médico</h2>
-                            <button onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+                <div className={styles.overlay}>
+                    <form className={styles.modal} onKeyDown={handleKeyDown} onSubmit={handleSubmit}>
+                        <div className={styles.headerModal}>
+                            <h2>{form.CDMEDICO ? 'Editar Médico' : 'Novo Cadastro'}</h2>
+                            <X onClick={() => { setIsModalOpen(false); setForm(initialForm); }} style={{ cursor: 'pointer' }} />
                         </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className={styles.formGroup}>
-                                <label>Nome Completo</label>
-                                <input required value={form.DCMEDICO} onChange={e => setForm({ ...form, DCMEDICO: e.target.value.toUpperCase() })} />
-                            </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}><label>CRM</label>
-                                    <input value={form.CRM} onChange={e => setForm({ ...form, CRM: e.target.value })} />
+
+                        <div className={styles.scroll}>
+                            {/* ... Restante dos inputs (permanece o mesmo código do grid anterior) ... */}
+                            <div className={styles.sectionTitle}><Stethoscope size={16} /> Profissional</div>
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 8' }}><label className={styles.label}>NOME COMPLETO</label><input required className={styles.input} value={form.DCMEDICO} onChange={e => setForm({ ...form, DCMEDICO: e.target.value.toUpperCase() })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 4' }}><label className={styles.label}>DATA NASC.</label><input type="date" className={styles.input} value={form.DATANASC} onChange={e => setForm({ ...form, DATANASC: e.target.value })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 4' }}><label className={styles.label}>CRM</label><input required className={styles.input} value={form.CRM} onChange={e => setForm({ ...form, CRM: e.target.value })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 8' }}><label className={styles.label}>ESPECIALIDADE</label>
+                                    <input list="lista-esp" className={styles.input} value={form.DCESPECIAL} onChange={e => {
+                                        const esp = especialidades.find(x => x.DCESPECIAL === e.target.value);
+                                        setForm({ ...form, DCESPECIAL: e.target.value, CDESPECIALIDADE: esp ? esp.CDESPECIALIDADE : '' });
+                                    }} />
+                                    <datalist id="lista-esp">{especialidades.map((e: any) => <option key={e.CDESPECIALIDADE} value={e.DCESPECIAL} />)}</datalist>
                                 </div>
-                                <div className={styles.formGroup}><label>Especialidade</label>
-                                    <input list="lista-esp" value={form.CDESPECIALIDADE} onChange={e => setForm({ ...form, CDESPECIALIDADE: e.target.value })} />
-                                    <datalist id="lista-esp">
-                                        {especialidades.map(e => <option key={e.CDESPECIAL} value={e.DSESPECIAL} />)}
-                                    </datalist>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 4' }}><label className={styles.label}>CPF</label><input className={styles.input} value={form.CPF} onChange={e => setForm({ ...form, CPF: mCPF(e.target.value) })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 4' }}><label className={styles.label}>CELULAR</label><input className={styles.input} value={form.CELULAR} onChange={e => setForm({ ...form, CELULAR: mCel(e.target.value) })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 4' }}><label className={styles.label}>TELEFONE</label><input className={styles.input} value={form.TELEFONE} onChange={e => setForm({ ...form, TELEFONE: mTel(e.target.value) })} /></div>
+                            </div>
+
+                            <div className={styles.sectionTitle}><MapPin size={16} /> Localização</div>
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 3' }}><label className={styles.label}>CEP</label><input className={styles.input} value={form.CEP} onChange={e => { const v = mCEP(e.target.value); setForm({ ...form, CEP: v }); buscarCEP(v); }} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 9' }}><label className={styles.label}>ENDEREÇO</label><input className={styles.input} value={form.ENDERECO} onChange={e => setForm({ ...form, ENDERECO: e.target.value.toUpperCase() })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 5' }}><label className={styles.label}>BAIRRO</label><input className={styles.input} value={form.BAIRRO} onChange={e => setForm({ ...form, BAIRRO: e.target.value.toUpperCase() })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 5' }}><label className={styles.label}>CIDADE</label><input className={styles.input} value={form.CIDADE} onChange={e => setForm({ ...form, CIDADE: e.target.value.toUpperCase() })} /></div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}><label className={styles.label}>UF</label><input className={styles.input} maxLength={2} value={form.UF} onChange={e => setForm({ ...form, UF: e.target.value.toUpperCase() })} /></div>
+                            </div>
+
+                            <div className={styles.sectionTitle}><FileText size={16} /> Extras</div>
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}><label className={styles.label}>OBSERVAÇÕES</label>
+                                    <textarea className={styles.input} style={{ minHeight: '80px' }} value={form.OBSERVA} onChange={e => setForm({ ...form, OBSERVA: e.target.value.toUpperCase() })} />
                                 </div>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 12' }}><label className={styles.label}>FOTO (URL)</label><input className={styles.input} value={form["FOTO-MED"]} onChange={e => setForm({ ...form, "FOTO-MED": e.target.value })} /></div>
                             </div>
-                            <div className={styles.modalActions}>
-                                <button type="button" className={styles.btnCancel} onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                                <button type="submit" className={styles.btnConfirm} style={{ backgroundColor: '#0ea5e9' }}>
-                                    <Save size={18} /> Salvar Médico
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+
+                        <div className={styles.footer}>
+                            <button type="button" onClick={() => { setIsModalOpen(false); setForm(initialForm); }} className={styles.btnCancel}>CANCELAR</button>
+                            <button type="submit" className={styles.btnSave}><Save size={18} /> {form.CDMEDICO ? 'SALVAR ALTERAÇÕES' : 'GRAVAR MÉDICO'}</button>
+                        </div>
+                    </form>
                 </div>
             )}
         </div>
