@@ -42,20 +42,68 @@ export const Especialidades: React.FC = () => {
     }, [busca, dados]);
 
     const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault();
+
+        const isUpdate = !!item.CDESPECIAL;
+
+        const url = isUpdate
+            ? `http://localhost:4000/api/especialidades/${item.CDESPECIAL}`
+            : 'http://localhost:4000/api/especialidades';
+
+        const method = isUpdate ? 'PUT' : 'POST';
+
         try {
-            const res = await fetch('http://localhost:4000/api/especialidades', {
-                method: 'POST',
+
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(item)
             });
+
             if (res.ok) {
+
+                alert(isUpdate ? "Especialidade atualizada!" : "Especialidade cadastrada!");
+
                 setIsModalOpen(false);
                 carregar();
-                setItem({ CDESPECIAL: null, DCESPECIAL: '' });
+
+                setItem({
+                    CDESPECIAL: null,
+                    DCESPECIAL: ''
+                });
+
+            } else {
+
+                const erro = await res.json();
+                alert("Erro: " + erro.error);
+
             }
+
         } catch (error) {
+
             alert("Erro ao salvar especialidade.");
+
+        }
+    };
+
+    const excluirEspecialidade = async (id: number, nome: string) => {
+        if (window.confirm(`Tem certeza que deseja excluir esta Especialidade ${nome}?`)) {
+            try {
+                const response = await fetch(`http://localhost:4000/api/especialidades/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert("Especialidade removida!");
+                    carregar(); // Atualiza a lista após excluir
+                } else {
+                    const erro = await response.json();
+                    alert(erro.error);
+                }
+            } catch (err) {
+                alert("Erro ao tentar excluir o especialidade.");
+            }
         }
     };
 
@@ -113,8 +161,17 @@ export const Especialidades: React.FC = () => {
                                     <td><strong>{i.DCESPECIAL}</strong></td>
                                     <td style={{ textAlign: 'center' }}>
                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
-                                            <Edit size={16} color="#1e293b" style={{ cursor: 'pointer' }} onClick={() => { setItem(i); setIsModalOpen(true); }} />
-                                            <Trash2 size={16} color="#ef4444" style={{ cursor: 'pointer' }} />
+                                            <Edit size={16} color="#1e293b" style={{ cursor: 'pointer' }} onClick={() => {
+                                                setItem({ ...i });
+                                                setIsModalOpen(true);
+                                            }} />
+                                            {/* <Trash2 size={16} color="#ef4444" style={{ cursor: 'pointer' }} /> */}
+                                            <Trash2
+                                                size={16}
+                                                color="#ef4444"
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => excluirEspecialidade(i.CDESPECIAL, i.DCESPECIAL)}
+                                            />
                                         </div>
                                     </td>
                                 </tr>

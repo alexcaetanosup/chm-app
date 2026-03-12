@@ -76,26 +76,46 @@ export const Medicos: React.FC = () => {
     }, [busca, medicos]);
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+
+        e.preventDefault()
+
+        const isUpdate = !!form.CDMEDICO
+
+        const url = isUpdate
+            ? `http://localhost:4000/api/medicos/${form.CDMEDICO}`
+            : 'http://localhost:4000/api/medicos'
+
+        const method = isUpdate ? 'PUT' : 'POST'
+
         try {
-            const response = await fetch('http://localhost:4000/api/medicos', {
-                method: 'POST',
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)
-            });
+            })
+
             if (response.ok) {
-                alert("Médico gravado com sucesso!");
-                setIsModalOpen(false);
-                carregarDados();
-                setForm(initialForm);
+
+                alert(isUpdate ? "Médico atualizado!" : "Médico cadastrado!")
+
+                setIsModalOpen(false)
+                setForm(initialForm)
+                carregarDados()
+
             } else {
-                const erro = await response.json();
-                alert("Erro no servidor: " + erro.error);
+
+                const erro = await response.json()
+                alert("Erro: " + erro.error)
+
             }
+
         } catch (err) {
-            alert("Erro de ligação ao servidor.");
+
+            alert("Erro de comunicação com servidor")
+
         }
-    };
+    }
 
     // 1. Adicione esta função dentro do componente Medicos
     const excluirMedico = async (id: number, nome: string) => {
@@ -132,7 +152,10 @@ export const Medicos: React.FC = () => {
                     <Search size={18} color="#94a3b8" />
                     <input type="text" placeholder="Pesquisar por nome ou CRM..." value={busca} onChange={(e) => setBusca(e.target.value)} />
                 </div>
-                <button className={styles.btnSave} onClick={() => setIsModalOpen(true)}>
+                <button className={styles.btnSave} onClick={() => {
+                    setForm(initialForm)
+                    setIsModalOpen(true)
+                }}>
                     <UserPlus size={18} /> NOVO MÉDICO
                 </button>
             </div>
@@ -170,7 +193,7 @@ export const Medicos: React.FC = () => {
                                                     color="#1e293b"
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={() => {
-                                                        setForm(m);
+                                                        setForm({ ...m });;
                                                         setIsModalOpen(true);
                                                     }}
                                                 />
@@ -180,7 +203,6 @@ export const Medicos: React.FC = () => {
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={() => excluirMedico(m.CDMEDICO, m.DCMEDICO)}
                                                 />
-                                                {/* <Trash2 size={16} color="#ef4444" style={{ cursor: 'pointer' }} /> */}
                                             </div>
                                         </td>
                                     </tr>

@@ -80,7 +80,7 @@ const App: React.FC = () => {
               onClick={() => setAbaAtiva('especialidades')}
             />
             <MenuItem
-              label="Lançamentos"
+              label="Financeiro"
               icon={<DollarSign size={20} />}
               active={abaAtiva === 'lancamentos'}
               onClick={() => setAbaAtiva('lancamentos')}

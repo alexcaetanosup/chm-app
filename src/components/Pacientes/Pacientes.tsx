@@ -1,9 +1,9 @@
 import { Edit, IdCard, Save, Search, Trash2, User, UserPlus, X } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './Pacientes.module.css';
 
 interface Paciente {
-    CDPACIENTE: string; DCPACIENTE: string; PACIENTE: string; CPF: string; RG: string;
+    CDPACIENTE?: string; DCPACIENTE: string; PACIENTE: string; CPF: string; RG: string;
     SEXO: string; CELULAR: string; TELEFONE: string; CEP: string; ENDERECO: string;
     BAIRRO: string; CIDADE: string; UF: string; ENDERECO2: string; BAIRRO2: string;
     CIDADE2: string; UF2: string; RECIBO: string; OBSERVA: string; "FOTO-PACIENTE": string;
@@ -28,6 +28,7 @@ export const Pacientes: React.FC = () => {
 
     const mCEP = (v: string) => v.replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2').substring(0, 9);
     const mCPF = (v: string) => v.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2').substring(0, 14);
+    const nomeRef = useRef<HTMLInputElement>(null);
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'submit') {
@@ -67,33 +68,54 @@ export const Pacientes: React.FC = () => {
 
     useEffect(() => { carregaDados(); }, []);
 
+    const filtrados = useMemo(() => {
+        const res = pacientes.filter(p =>
+            p.DCPACIENTE?.toUpperCase().includes(busca.toUpperCase())
+        );
+
+        return res.sort((a, b) =>
+            (a.DCPACIENTE || "").localeCompare(b.DCPACIENTE || "", 'pt-BR', { sensitivity: 'base' })
+        );
+    }, [busca, pacientes]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const isUpdate = !!form.CDPACIENTE;
-        // AJUSTE: Se for update, envia para a rota com ID para evitar erro do servidor
+
         const url = isUpdate
             ? `http://localhost:4000/api/pacientes/${form.CDPACIENTE}`
-            : 'http://localhost:4000/api/pacientes';
+            : `http://localhost:4000/api/pacientes`;
 
-        const method = isUpdate ? 'PUT' : 'POST';
+        const method = isUpdate ? "PUT" : "POST";
+
+        const payload = { ...form };
+
+        if (!isUpdate) {
+            delete payload.CDPACIENTE;
+        }
 
         try {
             const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form)
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
                 setIsModalOpen(false);
                 setForm(initialForm);
                 carregaDados();
+
                 alert(isUpdate ? "Atualizado com sucesso!" : "Cadastrado com sucesso!");
             } else {
                 const txt = await response.text();
                 alert("Erro no servidor: " + txt);
             }
-        } catch (error) { console.error("Erro na rotina:", error); }
+
+        } catch (error) {
+            console.error("Erro na rotina:", error);
+        }
     };
 
     const handleNomeChange = (valor: string) => {
@@ -101,15 +123,72 @@ export const Pacientes: React.FC = () => {
         setForm({ ...form, DCPACIENTE: nomeUpper });
 
         if (nomeUpper.length > 2) {
-            const filtrados = pacientes.filter(p =>
-                p.DCPACIENTE.toUpperCase().includes(nomeUpper) &&
-                String(p.CDPACIENTE) !== String(form.CDPACIENTE)
-            ).slice(0, 5);
-            setSugestoes(filtrados);
-            setMostrarSugestoes(filtrados.length > 0);
+
+            const inicio = pacientes.filter(p =>
+                p.DCPACIENTE.startsWith(nomeUpper)
+            );
+
+            const contem = pacientes.filter(p =>
+                p.DCPACIENTE.includes(nomeUpper) &&
+                !p.DCPACIENTE.startsWith(nomeUpper)
+            );
+
+            const resultado = [...inicio, ...contem]
+                .filter(p => String(p.CDPACIENTE) !== String(form.CDPACIENTE))
+                .slice(0, 5);
+
+            setSugestoes(resultado);
+            setMostrarSugestoes(resultado.length > 0);
+
         } else {
             setMostrarSugestoes(false);
         }
+    };
+
+    const excluirPaciente = async (id: string, nome: string) => {
+        if (window.confirm(`Tem certeza que deseja excluir o paciente ${nome}?`)) {
+            try {
+                const response = await fetch(`http://localhost:4000/api/pacientes/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert("Paciente removido!");
+                    carregaDados(); // Atualiza a lista após excluir
+                } else {
+                    const erro = await response.json();
+                    alert(erro.error);
+                }
+            } catch (err) {
+                alert("Erro ao tentar excluir o paciente.");
+            }
+        }
+    };
+
+    const mCelular = (v: string) =>
+        v.replace(/\D/g, '')
+            .replace(/^(\d{2})(\d)/g, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2')
+            .substring(0, 15);
+
+    const handleFotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("foto", file);
+
+        const response = await fetch("http://localhost:4000/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        setForm({
+            ...form,
+            "FOTO-PACIENTE": data.url
+        });
     };
 
     return (
@@ -125,7 +204,15 @@ export const Pacientes: React.FC = () => {
                     <Search size={18} color="#94a3b8" />
                     <input placeholder="Buscar por nome ou CPF..." value={busca} onChange={e => setBusca(e.target.value)} />
                 </div>
-                <button onClick={() => { setForm(initialForm); setIsModalOpen(true); }} className={styles.btnSave}>
+                {/* <button onClick={() => { setForm(initialForm); setIsModalOpen(true); }} className={styles.btnSave}> */}
+                <button
+                    onClick={() => {
+                        setForm(initialForm);
+                        setSugestoes([]);
+                        setMostrarSugestoes(false);
+                        setIsModalOpen(true);
+                    }} className={styles.btnSave}
+                >
                     <UserPlus size={18} /> NOVO PACIENTE
                 </button>
             </div>
@@ -150,8 +237,20 @@ export const Pacientes: React.FC = () => {
                                     <td style={{ textAlign: 'center' }}>{p.CPF}</td>
                                     <td style={{ textAlign: 'right' }}>{p.CELULAR}</td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <Edit size={18} style={{ cursor: 'pointer', marginRight: '10px', color: '#64748b' }} onClick={() => { setForm(p); setIsModalOpen(true); }} />
-                                        <Trash2 size={18} color="#ef4444" style={{ cursor: 'pointer' }} />
+                                        <Edit size={18} style={{ cursor: 'pointer', marginRight: '10px', color: '#64748b' }} onClick={() => {
+                                            setForm({
+                                                ...initialForm,
+                                                ...p
+                                            });
+                                            setIsModalOpen(true);
+                                        }} />
+                                        {/* <Trash2 size={18} color="#ef4444" style={{ cursor: 'pointer' }} /> */}
+                                        <Trash2
+                                            size={16}
+                                            color="#ef4444"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => excluirPaciente(p.CDPACIENTE!, p.DCPACIENTE)}
+                                        />
                                     </td>
                                 </tr>
                             ))}
@@ -182,7 +281,17 @@ export const Pacientes: React.FC = () => {
                                     {mostrarSugestoes && (
                                         <ul className={styles.sugestoesList}>
                                             {sugestoes.map(p => (
-                                                <li key={p.CDPACIENTE} onClick={() => { setForm(p); setMostrarSugestoes(false); }}>
+                                                // <li key={p.CDPACIENTE} onClick={() => { setForm(p); setMostrarSugestoes(false); }}>
+                                                <li
+                                                    key={p.CDPACIENTE}
+                                                    onClick={() => {
+                                                        setForm({
+                                                            ...initialForm,
+                                                            ...p
+                                                        });
+                                                        setMostrarSugestoes(false);
+                                                    }}
+                                                >
                                                     <strong>{p.DCPACIENTE}</strong> (Cod: {p.CDPACIENTE})
                                                 </li>
                                             ))}
@@ -218,11 +327,23 @@ export const Pacientes: React.FC = () => {
                             <div className={styles.grid12}>
                                 <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
                                     <label>CELULAR</label>
-                                    <input value={form.CELULAR} onChange={e => setForm({ ...form, CELULAR: e.target.value })} />
+                                    {/* <input value={form.CELULAR} onChange={e => setForm({ ...form, CELULAR: e.target.value })} /> */}
+                                    <input
+                                        value={form.CELULAR}
+                                        onChange={e =>
+                                            setForm({ ...form, CELULAR: mCelular(e.target.value) })
+                                        }
+                                    />
                                 </div>
                                 <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
                                     <label>TELEFONE</label>
-                                    <input value={form.TELEFONE} onChange={e => setForm({ ...form, TELEFONE: e.target.value })} />
+                                    <input
+                                        value={form.TELEFONE}
+                                        onChange={e =>
+                                            setForm({ ...form, TELEFONE: mCelular(e.target.value) })
+                                        }
+                                    />
+                                    {/* <input value={form.TELEFONE} onChange={e => setForm({ ...form, TELEFONE: e.target.value })} /> */}
                                 </div>
                                 <div style={{ gridColumn: 'span 3' }} className={styles.fGroup}>
                                     <label>CEP</label>
@@ -269,8 +390,30 @@ export const Pacientes: React.FC = () => {
                             <div className={styles.sectionTitle}>Complementos</div>
                             <div className={styles.grid12}>
                                 <div style={{ gridColumn: 'span 12' }} className={styles.fGroup}>
+                                    {form["FOTO-PACIENTE"] && (
+                                        <div style={{ marginBottom: "10px" }}>
+                                            <img
+                                                src={form["FOTO-PACIENTE"]}
+                                                alt="Paciente"
+                                                style={{
+                                                    width: "120px",
+                                                    height: "120px",
+                                                    objectFit: "cover",
+                                                    borderRadius: "10px",
+                                                    border: "1px solid #e2e8f0"
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                     <label>URL DA FOTO (FOTO-PACIENTE)</label>
                                     <input value={form["FOTO-PACIENTE"]} onChange={e => setForm({ ...form, "FOTO-PACIENTE": e.target.value })} />
+                                </div>
+                                <div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFotoUpload}
+                                    />
                                 </div>
                                 <div style={{ gridColumn: 'span 12' }} className={styles.fGroup}>
                                     <label>OBSERVAÇÕES</label>
