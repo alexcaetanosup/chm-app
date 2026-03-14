@@ -1,5 +1,8 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import React, { useEffect, useMemo, useState } from "react";
+import { gerarReciboPDF } from "../../services/reciboPdfService";
+import { ModalReimpressao } from '../Recibos/ModalReimpressao';
+import styles from "./Lancamentos.module.css";
+
 import {
     Calculator,
     DollarSign,
@@ -8,10 +11,7 @@ import {
     Save,
     Search,
     X
-} from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
-import { APP_TITLE } from '../../App';
-import styles from './Lancamentos.module.css';
+} from "lucide-react";
 
 interface Parcela {
     DTPARCELA: string;
@@ -19,9 +19,6 @@ interface Parcela {
     PARCELA: number;
 }
 
-interface jsPDFWithAutoTable extends jsPDF {
-    lastAutoTable?: any;
-}
 export const Lancamentos: React.FC = () => {
     const [lancamentos, setLancamentos] = useState<any[]>([]);
     const [pacientes, setPacientes] = useState<any[]>([]);
@@ -44,6 +41,36 @@ export const Lancamentos: React.FC = () => {
     });
 
     const [parcelas, setParcelas] = useState<Parcela[]>([]);
+
+    const [modalRecibos, setModalRecibos] = useState(false);
+
+    const listaRecibos = Object.values(
+        lancamentos.reduce((acc: any, l: any) => {
+
+            if (!acc[l.NRVENDA]) {
+                acc[l.NRVENDA] = {
+                    id: l.NRVENDA,
+                    paciente: l.PACIENTE,
+                    medico: l.MEDICO,
+                    especialidade: l.ESPECIALIDADE,
+                    dados: {
+                        DATATEND: l.DATATEND,
+                        VALOR_TOTAL: l.VLPARCELA
+                    },
+                    parcelas: []
+                };
+            }
+
+            acc[l.NRVENDA].parcelas.push({
+                DTPARCELA: l.DTPARCELA,
+                VLPARCELA: l.VLPARCELA,
+                PARCELA: l.PARCELA
+            });
+
+            return acc;
+
+        }, {})
+    );
 
     const carregarTudo = async () => {
         setLoading(true);
@@ -75,97 +102,44 @@ export const Lancamentos: React.FC = () => {
 
     const lancamentosFiltrados = useMemo(() => {
         return lancamentos.filter(l =>
-            l.PACIENTE?.toUpperCase().includes(busca.toUpperCase()) ||
-            l.MEDICO?.toUpperCase().includes(busca.toUpperCase())
+            (l.PACIENTE || "").toUpperCase().includes(busca.toUpperCase()) ||
+            (l.MEDICO || "").toUpperCase().includes(busca.toUpperCase())
         );
     }, [busca, lancamentos]);
 
-    // const gerarPDFComprovante = (listaParcelas: Parcela[]) => {
-    const gerarPDFComprovante = (listaParcelas: Parcela[], dados: any) => {
-        const doc: jsPDFWithAutoTable = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "letter"
-        });
-        const pageWidth = doc.internal.pageSize.getWidth();
-        doc.setFontSize(16);
-        doc.text(APP_TITLE, pageWidth / 2, 15, { align: "center" });
-        doc.setFontSize(12);
-        doc.text("RECIBO DE ATENDIMENTO MÉDICO", pageWidth / 2, 22, { align: "center" });
-        doc.setFontSize(16);
-        // USO DA CONSTANTE GLOBAL
-        // doc.text(APP_TITLE, pageWidth / 2, 15, { align: "center" });
-
-        doc.setFontSize(16);
-        doc.text(APP_TITLE, 105, 15, { align: "center" });
-
-        doc.setFontSize(12);
-        doc.text("RECIBO DE ATENDIMENTO MÉDICO", 105, 22, { align: "center" });
-
-        doc.setFontSize(10);
-
-        doc.rect(14, 28, 182, 22);
-
-        doc.text(`Paciente: ${dados.CDPACIENTE}`, 18, 35);
-        doc.text(`Médico: ${dados.CDMEDICO}`, 18, 40);
-        doc.text(`Especialidade: ${dados.CDESPECIAL}`, 18, 45);
-        doc.text(`Data Atendimento: ${new Date(dados.DATATEND).toLocaleDateString('pt-BR')}`, 120, 35);
-        doc.text(`Plano: ${dados.PLANO}`, 120, 40);
-
-        doc.line(16, 260, 190, 260);
-        doc.text("Assinatura do Paciente", 70, 268);
-
-        const rows = listaParcelas.map(p => [
-            p.PARCELA,
-            new Date(p.DTPARCELA).toLocaleDateString('pt-BR'),
-            Number(p.VLPARCELA).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-        ]);
-
-        autoTable(doc, {
-            head: [['Parc.', 'Vencimento', 'Valor']],
-            body: rows,
-            startY: 55,
-            headStyles: { fillColor: [245, 158, 11] }
-        });
-
-        const total = listaParcelas.reduce((s, p) => s + Number(p.VLPARCELA), 0);
-
-        doc.setFontSize(11);
-        doc.text(
-            `Total: ${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-            150,
-            (doc as any).lastAutoTable?.finalY + 10
-        );
-        const y = (doc as any).lastAutoTable?.finalY + 30;
-
-        doc.line(60, y, 150, y);
-        doc.text("Assinatura do Paciente", 82, y + 6);
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.5);
-        doc.rect(14, 28, 182, (doc as any).lastAutoTable?.finalY ? doc.lastAutoTable.finalY - 28 : 80); // caixa ao redor
-        doc.setFont("helvetica", "bold");
-        doc.text("Comprovante válido como recibo", pageWidth / 2, (doc as any).lastAutoTable?.finalY + 20, { align: "center" });
-        const nomePaciente = String(dados.CDPACIENTE || "Paciente");
-        doc.save(`Lancamento_${nomePaciente.replace(/\s+/g, '_')}.pdf`);
-    };
-
     const gerarParcelas = () => {
-        const total = parseFloat(item.VALOR_TOTAL);
+
+        const total = parseFloat(item.VALOR_TOTAL || "0");
+
         const qtd = parseInt(item.QTD_PARCELAS);
-        if (isNaN(total) || total <= 0 || isNaN(qtd) || qtd <= 0) return alert("Verifique valores e parcelas.");
+
+        if (isNaN(total) || total <= 0 || isNaN(qtd) || qtd <= 0) {
+            alert("Verifique valores e parcelas.");
+            return;
+        }
 
         const valorBase = parseFloat((total / qtd).toFixed(2));
+
         const novas: Parcela[] = [];
+
         for (let i = 1; i <= qtd; i++) {
+
             const dt = new Date(item.DATATEND);
+
             dt.setMonth(dt.getMonth() + (i - 1));
+
             novas.push({
                 DTPARCELA: dt.toISOString().split('T')[0],
-                VLPARCELA: i === qtd ? parseFloat((total - (valorBase * (qtd - 1))).toFixed(2)) : valorBase,
+                VLPARCELA: i === qtd
+                    ? parseFloat((total - (valorBase * (qtd - 1))).toFixed(2))
+                    : valorBase,
                 PARCELA: i
             });
+
         }
+
         setParcelas(novas);
+
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -177,7 +151,7 @@ export const Lancamentos: React.FC = () => {
             return;
         }
 
-        const nrVenda = Date.now();
+        const nrVenda = Date.now().toString();
 
         try {
             const promises = parcelas.map(async (p) => {
@@ -201,7 +175,22 @@ export const Lancamentos: React.FC = () => {
 
             await Promise.all(promises);
 
-            gerarPDFComprovante(parcelas, item);
+            const pacienteNome =
+                pacientes.find(p => p.CDPACIENTE === item.CDPACIENTE)?.DCPACIENTE || "";
+
+            const medicoNome =
+                medicos.find(m => m.CDMEDICO === item.CDMEDICO)?.DCMEDICO || "";
+
+            const especialidadeNome =
+                especialidades.find(e => e.CDESPECIAL === item.CDESPECIAL)?.DCESPECIAL || "";
+
+            gerarReciboPDF(
+                parcelas,
+                item,
+                pacienteNome,
+                medicoNome,
+                especialidadeNome
+            );
 
             alert("Sucesso! PDF gerado.");
 
@@ -276,6 +265,8 @@ export const Lancamentos: React.FC = () => {
         }, {})
     );
 
+    console.log("modalRecibos:", modalRecibos);
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -286,6 +277,20 @@ export const Lancamentos: React.FC = () => {
                         <p>Gestão de Atendimentos e Cobranças</p>
                     </div>
                 </div>
+                <button
+                    onClick={() => {
+                        console.log("clicou");
+                        setModalRecibos(true);
+                    }}
+                >
+                    Reimprimir Recibo
+                </button>
+                {/* <button
+                    className={styles.btnSecondary}
+                    onClick={() => setModalRecibos(true)}
+                >
+                    <Eye size={18} /> Reimprimir Recibo
+                </button> */}
                 <div>
                     <button className={styles.btnPrimary} onClick={() => setIsModalOpen(true)}>
                         <Plus size={20} /> Novo Atendimento
@@ -323,18 +328,23 @@ export const Lancamentos: React.FC = () => {
                             <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Carregando...</td></tr>
                         ) : (
                             lancamentosFiltrados.map((l, idx) => (
-                                <tr key={idx}>
+                                <tr key={`${l.NRVENDA}-${l.DTPARCELA}-${idx}`}>
                                     <td>{new Date(l.DATATEND).toLocaleDateString('pt-BR')}</td>
                                     <td>{l.PACIENTE}</td>
                                     <td>{l.MEDICO}</td>
-                                    <td>{Number(l.VLPARCELA).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                                    <td>
+                                        {Number(l.VLPARCELA).toLocaleString('pt-BR', {
+                                            style: 'currency',
+                                            currency: 'BRL'
+                                        })}
+                                    </td>
                                     <td>
                                         <span className={`${styles.statusBadge} ${l.ABERTO === 'S' ? styles.pendente : styles.pago}`}>
                                             {l.ABERTO === 'S' ? 'Pendente' : 'Pago'}
                                         </span>
                                     </td>
                                     <td>
-                                        <button className={styles.btnIcon} onClick={() => setSelectedItem(true)}>
+                                        <button className={styles.btnIcon} onClick={() => setSelectedItem(l)}>
                                             <Eye size={18} color="#6366f1" />
                                         </button>
                                     </td>
@@ -443,6 +453,12 @@ export const Lancamentos: React.FC = () => {
                     </div>
                 )
             }
+            {modalRecibos && (
+                <ModalReimpressao
+                    recibos={listaRecibos}
+                    onClose={() => setModalRecibos(false)}
+                />
+            )}
         </div >
     );
 };
