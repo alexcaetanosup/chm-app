@@ -124,3 +124,24 @@
   font-weight: 600;
   cursor: pointer;
 }
+.tabelaRelatorio {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabelaRelatorio th,
+.tabelaRelatorio td {
+  border: 1px solid #e2e8f0;
+  padding: 12px 15px;
+  text-align: left;
+}
+.valorDireita {
+  text-align: right;
+  font-weight: 700;
+  padding-right: 5px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tabelaRelatorio th:last-child,
+.tabelaRelatorio td:last-child {
+  width: 180px;
+}

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { gerarReciboPDF } from "../../services/reciboPdfService";
-import { ModalReimpressao } from '../Recibos/ModalReimpressao';
 import styles from "./Lancamentos.module.css";
 
 import {
@@ -42,7 +41,13 @@ export const Lancamentos: React.FC = () => {
 
     const [parcelas, setParcelas] = useState<Parcela[]>([]);
 
-    const [modalRecibos, setModalRecibos] = useState(false);
+    const subtotal = parcelas.reduce((acc, p) => {
+        const valor = parseFloat(String(p.VLPARCELA)) || 0;
+        return acc + valor;
+    }, 0);
+
+    const taxa = subtotal * 0.05;
+    const total = subtotal + taxa;
 
     const listaRecibos = Object.values(
         lancamentos.reduce((acc: any, l: any) => {
@@ -265,8 +270,6 @@ export const Lancamentos: React.FC = () => {
         }, {})
     );
 
-    console.log("modalRecibos:", modalRecibos);
-
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -277,37 +280,22 @@ export const Lancamentos: React.FC = () => {
                         <p>Gestão de Atendimentos e Cobranças</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => {
-                        console.log("clicou");
-                        setModalRecibos(true);
-                    }}
-                >
-                    Reimprimir Recibo
-                </button>
-                {/* <button
-                    className={styles.btnSecondary}
-                    onClick={() => setModalRecibos(true)}
-                >
-                    <Eye size={18} /> Reimprimir Recibo
-                </button> */}
+                <div className={styles.searchSection}>
+                    <div className={styles.searchWrapper}>
+                        <Search className={styles.searchIcon} size={20} />
+                        <input
+                            type="text"
+                            placeholder="Pesquisar por paciente ou médico..."
+                            className={styles.searchInput}
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                        />
+                    </div>
+                </div>
                 <div>
                     <button className={styles.btnPrimary} onClick={() => setIsModalOpen(true)}>
                         <Plus size={20} /> Novo Atendimento
                     </button>
-                </div>
-            </div>
-
-            <div className={styles.searchSection}>
-                <div className={styles.searchWrapper}>
-                    <Search className={styles.searchIcon} size={20} />
-                    <input
-                        type="text"
-                        placeholder="Pesquisar por paciente ou médico..."
-                        className={styles.searchInput}
-                        value={busca}
-                        onChange={(e) => setBusca(e.target.value)}
-                    />
                 </div>
             </div>
 
@@ -318,7 +306,7 @@ export const Lancamentos: React.FC = () => {
                             <th>Data Atend.</th>
                             <th>Paciente</th>
                             <th>Médico</th>
-                            <th>Valor Parcela</th>
+                            <th style={{ textAlign: 'right' }}>Valor Parcela</th>
                             <th>Status</th>
                             <th>Ações</th>
                         </tr>
@@ -332,12 +320,13 @@ export const Lancamentos: React.FC = () => {
                                     <td>{new Date(l.DATATEND).toLocaleDateString('pt-BR')}</td>
                                     <td>{l.PACIENTE}</td>
                                     <td>{l.MEDICO}</td>
-                                    <td>
+                                    <td className={styles.valorDireita}>
                                         {Number(l.VLPARCELA).toLocaleString('pt-BR', {
                                             style: 'currency',
                                             currency: 'BRL'
                                         })}
                                     </td>
+
                                     <td>
                                         <span className={`${styles.statusBadge} ${l.ABERTO === 'S' ? styles.pendente : styles.pago}`}>
                                             {l.ABERTO === 'S' ? 'Pendente' : 'Pago'}
@@ -378,8 +367,6 @@ export const Lancamentos: React.FC = () => {
                                 <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
                                         <label>Médico</label>
-                                        {/* <input list="l-med" required value={item.CDMEDICO} onChange={(e) => setItem({ ...item, CDMEDICO: e.target.value })} placeholder="Selecione o médico..." />
-                                        <datalist id="l-med">{medicos.map((m, i) => <option key={i} value={m.DCMEDICO} />)}</datalist> */}
                                         <input
                                             list="l-med"
                                             required
@@ -395,8 +382,6 @@ export const Lancamentos: React.FC = () => {
                                     </div>
                                     <div className={styles.formGroup}>
                                         <label>Especialidade</label>
-                                        {/* <input list="l-esp" required value={item.CDESPECIAL} onChange={(e) => setItem({ ...item, CDESPECIAL: e.target.value })} placeholder="Especialidade..." />
-                                        <datalist id="l-esp">{especialidades.map((esp, i) => <option key={i} value={esp.DCESPECIAL} />)}</datalist> */}
                                         <input
                                             list="l-esp"
                                             required
@@ -427,18 +412,102 @@ export const Lancamentos: React.FC = () => {
                                 </div>
 
                                 {parcelas.length > 0 && (
-                                    <div style={{ maxHeight: '150px', overflowY: 'auto', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                        {parcelas.map((p, i) => (
-                                            <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '12px', minWidth: '45px' }}>Parc {p.PARCELA}</span>
-                                                <input type="date" value={p.DTPARCELA} onChange={(e) => {
-                                                    const n = [...parcelas]; n[i].DTPARCELA = e.target.value; setParcelas(n);
-                                                }} />
-                                                <input type="number" step="0.01" value={p.VLPARCELA} onChange={(e) => {
-                                                    const n = [...parcelas]; n[i].VLPARCELA = parseFloat(e.target.value); setParcelas(n);
-                                                }} />
+                                    <div
+                                        style={{
+                                            background: '#f8fafc',
+                                            padding: '12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e2e8f0'
+                                        }}
+                                    >
+                                        <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                                            {parcelas.map((p, i) => (
+                                                <div
+                                                    key={i}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        marginBottom: "8px",
+                                                        width: "100%"
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '12px', width: '60px' }}>
+                                                        Parc {p.PARCELA}
+                                                    </span>
+
+                                                    <input
+                                                        type="date"
+                                                        value={p.DTPARCELA}
+                                                        style={{ marginLeft: "10px" }}
+                                                        onChange={(e) => {
+                                                            const n = [...parcelas];
+                                                            n[i].DTPARCELA = e.target.value;
+                                                            setParcelas(n);
+                                                        }}
+                                                    />
+
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={p.VLPARCELA}
+                                                        style={{
+                                                            marginLeft: "auto",
+                                                            textAlign: "right",
+                                                            width: "120px",
+                                                            fontWeight: "bold"
+                                                        }}
+                                                        onChange={(e) => {
+                                                            const valor = parseFloat(e.target.value) || 0;
+                                                            const n = [...parcelas];
+                                                            n[i].VLPARCELA = valor;
+                                                            setParcelas(n);
+                                                        }}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* RESUMO */}
+                                        <div
+                                            style={{
+                                                marginTop: "12px",
+                                                paddingTop: "10px",
+                                                borderTop: "1px solid #e5e7eb",
+                                                display: "flex",
+                                                justifyContent: "flex-end"
+                                            }}
+                                        >
+                                            <div style={{ width: "220px", fontSize: "14px" }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                                    <span>Subtotal</span>
+                                                    <span>
+                                                        {subtotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                                    </span>
+                                                </div>
+
+                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                                    <span>5%</span>
+                                                    <span>
+                                                        {taxa.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                                    </span>
+                                                </div>
+
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        fontWeight: "bold",
+                                                        borderTop: "1px solid #d1d5db",
+                                                        paddingTop: "6px"
+                                                    }}
+                                                >
+                                                    <span>Total</span>
+                                                    <span>
+                                                        {total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
                                 )}
 
@@ -453,12 +522,6 @@ export const Lancamentos: React.FC = () => {
                     </div>
                 )
             }
-            {modalRecibos && (
-                <ModalReimpressao
-                    recibos={listaRecibos}
-                    onClose={() => setModalRecibos(false)}
-                />
-            )}
         </div >
     );
 };

@@ -246,6 +246,7 @@
   padding: 0 4px; /* Pequeno recuo lateral para não encostar na borda da tela */
   display: flex;
   justify-content: flex-start;
+  width: 40%;
 }
 
 .searchWrapper {
@@ -297,4 +298,44 @@
   .formRow {
     flex-direction: column;
   }
+}
+
+.valorDireita {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.relatorio {
+  width: 100%;
+  max-width: 100%;
+}
+.tabelaLancamentos {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabelaLancamentos {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabelaRelatorio {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th:last-child,
+.table td:last-child {
+  text-align: right;
+}
+
+.valorDireita {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding-right: 10px;
 }

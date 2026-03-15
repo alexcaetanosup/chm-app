@@ -16,13 +16,17 @@ export const RelatorioItens: React.FC = () => {
     const [dataInicio, setDataInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
     const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
+    const [modalRecibos, setModalRecibos] = useState(false);
+    const [recibosSelecionados, setRecibosSelecionados] = useState<any[]>([]);
+
 
     const [flags, setFlags] = useState({
         porMedico: true,
         porPaciente: false,
         porData: false,
         porPlano: false,
-        porMedicoAno: false
+        porMedicoAno: false,
+        reimpressaoRecibos: false
     });
 
     useEffect(() => {
@@ -142,6 +146,208 @@ export const RelatorioItens: React.FC = () => {
         doc.save(`Relatorio_${flags.porMedicoAno ? 'Anual' : 'Analitico'}.pdf`);
     };
 
+    const gerarReimpressaoRecibos = () => {
+
+        if (dadosFiltrados.length === 0) {
+            alert("Nenhum recibo encontrado.");
+            return;
+        }
+
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text("Reimpressão de Recibos", 14, 15);
+
+        autoTable(doc, {
+            head: [['Data', 'Paciente', 'Médico', 'Plano', 'Valor']],
+
+            body: dadosFiltrados.map(l => [
+                new Date(l.DATATEND).toLocaleDateString('pt-BR'),
+                l.PACIENTE,
+                l.MEDICO,
+                l.PLANO,
+                Number(l.VLPARCELA).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                })
+            ]),
+
+            startY: 25,
+            theme: 'grid',
+
+            styles: {
+                fontSize: 10,
+                cellPadding: 3
+            },
+
+            headStyles: {
+                halign: 'left'
+            },
+
+            columnStyles: {
+                0: { cellWidth: 25 },   // Data
+                1: { cellWidth: 55 },   // Paciente
+                2: { cellWidth: 45 },   // Médico
+                3: { cellWidth: 30 },   // Plano
+                4: { cellWidth: 35, halign: 'right' } // Valor alinhado à direita
+            }
+        });
+
+        doc.save("Reimpressao_Recibos.pdf");
+
+    };
+
+    const toggleRecibo = (paciente: any) => {
+
+        const existe = recibosSelecionados.find(
+            r => r.paciente === paciente.paciente
+        );
+
+        if (existe) {
+
+            setRecibosSelecionados(prev =>
+                prev.filter(r => r.paciente !== paciente.paciente)
+            );
+
+        } else {
+
+            setRecibosSelecionados(prev => [...prev, paciente]);
+
+        }
+
+    };
+
+    const imprimirSelecionados = () => {
+
+        if (recibosSelecionados.length === 0) {
+            alert("Selecione um paciente.");
+            return;
+        }
+
+        const doc = new jsPDF();
+
+        let y = 20;
+
+        recibosSelecionados.forEach((p: any) => {
+
+            const subtotal = p.subtotal;
+            const taxa = subtotal * 0.05;
+            const total = subtotal;
+
+            doc.setFontSize(14);
+            doc.text(`Paciente: ${p.paciente}`, 14, y);
+
+            y += 6;
+
+            doc.setFontSize(11);
+            doc.text(`Médico: ${p.medico}`, 14, y);
+
+            y += 10;
+
+            autoTable(doc, {
+
+                head: [['Data', 'Paciente', 'Médico', 'Plano', 'Valor']],
+
+                body: p.parcelas.map((l: any) => [
+
+                    l.DTPARCELA
+                        ? new Date(l.DTPARCELA).toLocaleDateString('pt-BR')
+                        : '',
+
+                    l.PACIENTE,
+
+                    l.MEDICO,
+
+                    l.PLANO,
+
+                    Number(l.VLPARCELA).toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                    })
+
+                ]),
+
+                startY: y,
+
+                styles: {
+                    fontSize: 10
+                },
+
+                columnStyles: {
+                    4: { halign: 'right' }
+                }
+
+            });
+
+            y = (doc as any).lastAutoTable.finalY + 10;
+
+            const direita = 140;
+
+            doc.text(
+                `Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+                direita,
+                y
+            );
+
+            y += 6;
+
+            doc.text(
+                `Taxa 5%: ${taxa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+                direita,
+                y
+            );
+
+            y += 6;
+
+            doc.setFont("helvetica", "bold");
+
+            doc.text(
+                `TOTAL: ${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+                direita,
+                y
+            );
+
+            doc.setFont("helvetica", "normal");
+
+            y += 25;
+
+            doc.text("__________________________", 60, y);
+            y += 6;
+            doc.text("Assinatura do Médico", 75, y);
+
+            y += 20;
+
+        });
+
+        doc.save("Recibos.pdf");
+
+    };
+
+    const pacientesAgrupados = Object.values(
+
+        lancamentos.reduce((acc: any, l: any) => {
+
+            if (!acc[l.PACIENTE]) {
+
+                acc[l.PACIENTE] = {
+                    paciente: l.PACIENTE,
+                    medico: l.MEDICO,
+                    especialidade: l.ESPECIALIDADE,
+                    parcelas: [],
+                    subtotal: 0
+                };
+
+            }
+
+            acc[l.PACIENTE].parcelas.push(l);
+            acc[l.PACIENTE].subtotal += Number(l.VLPARCELA);
+
+            return acc;
+
+        }, {})
+    );
+
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -152,6 +358,19 @@ export const RelatorioItens: React.FC = () => {
             <div className={styles.configGrid}>
                 <div className={styles.card}>
                     <h3><Calendar size={18} /> Filtro Temporal</h3>
+                    {flags.reimpressaoRecibos && (
+                        <div className={styles.inputGroupVertical}>
+                            <button
+                                className={styles.btnPrimary}
+                                onClick={() => setModalRecibos(true)}
+                            >
+                                Selecionar Recibos
+                            </button>
+                            <span>
+                                {recibosSelecionados.length} recibo(s) selecionado(s)
+                            </span>
+                        </div>
+                    )}
 
                     {flags.porMedicoAno ? (
                         <div className={styles.inputGroupVertical}>
@@ -201,6 +420,19 @@ export const RelatorioItens: React.FC = () => {
                             {flags.porPlano ? <CheckSquare color="#38bdf8" /> : <Square color="#94a3b8" />}
                             <span className={flags.porPlano ? styles.activeText : ''}>Plano / Convênio</span>
                         </div>
+                        <div
+                            className={styles.flagItem}
+                            onClick={() => selecionarFlag('reimpressaoRecibos')}
+                        >
+                            {flags.reimpressaoRecibos
+                                ? <CheckSquare color="#38bdf8" />
+                                : <Square color="#94a3b8" />
+                            }
+
+                            <span className={flags.reimpressaoRecibos ? styles.activeText : ''}>
+                                Reimpressão de Recibos
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,10 +441,110 @@ export const RelatorioItens: React.FC = () => {
                 <button className={styles.btnReset} onClick={limparFiltros}>
                     <Trash2 size={18} /> Limpar Filtros
                 </button>
-                <button className={styles.btnPrimary} onClick={gerarRelatorioMestre}>
+                <button
+                    className={styles.btnPrimary}
+                    onClick={() => {
+                        if (flags.reimpressaoRecibos) {
+                            gerarReimpressaoRecibos();
+                            return;
+                        }
+                        // gerarRelatorioMestre();
+                    }}
+                >
                     <Printer size={20} /> Gerar PDF Analítico
                 </button>
             </div>
-        </div>
+
+            {modalRecibos && (
+
+                <div className={styles.modalOverlay}>
+
+                    <div className={styles.modalContent} style={{ maxWidth: "800px" }}>
+
+                        <h2>Selecionar Recibos</h2>
+
+                        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+
+                            <table className={styles.table}>
+
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Data</th>
+                                        <th>Paciente</th>
+                                        <th>Médico</th>
+                                        <th style={{ textAlign: 'right' }}>Valor</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {pacientesAgrupados.map((p: any, index: number) => {
+
+                                        const selecionado = recibosSelecionados.find(
+                                            r => r.paciente === p.paciente
+                                        );
+
+                                        return (
+
+                                            <tr key={index}>
+
+                                                <td>
+
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!!selecionado}
+                                                        onChange={() => toggleRecibo(p)}
+                                                    />
+
+                                                </td>
+
+                                                <td>{p.paciente}</td>
+
+                                                <td>{p.medico}</td>
+
+                                                <td>{p.parcelas.length}</td>
+
+                                                <td className={styles.valorDireita}>
+                                                    {p.subtotal.toLocaleString('pt-BR', {
+                                                        style: 'currency',
+                                                        currency: 'BRL'
+                                                    })}
+                                                </td>
+
+                                            </tr>
+
+                                        );
+
+                                    })}
+
+                                </tbody>
+
+
+
+                            </table>
+
+                        </div>
+
+                        <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+                            <button
+                                className={styles.btnPrimary}
+                                onClick={imprimirSelecionados}
+                            // onClick={gerarReimpressaoRecibos}
+
+                            >
+                                Reimprimir Selecionados
+                            </button>
+                            <button
+                                className={styles.btnReset}
+                                onClick={() => setModalRecibos(false)}
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div >
     );
 };
