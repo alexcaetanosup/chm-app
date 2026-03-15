@@ -47,7 +47,7 @@ export const Lancamentos: React.FC = () => {
     }, 0);
 
     const taxa = subtotal * 0.05;
-    const total = subtotal + taxa;
+    const total = subtotal - taxa;
 
     const listaRecibos = Object.values(
         lancamentos.reduce((acc: any, l: any) => {

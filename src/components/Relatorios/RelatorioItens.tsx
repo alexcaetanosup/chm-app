@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
 import {
     Calendar,
     CheckSquare,
@@ -116,7 +117,7 @@ export const RelatorioItens: React.FC = () => {
             const totalGrupo = agrupado[grupo].reduce((sum: number, l: any) => sum + Number(l.VLPARCELA), 0);
 
             autoTable(doc, {
-                head: [['Data', 'Paciente', 'Plano', 'Valor', 'Status']],
+                head: [['Data', 'Paciente', '     ', 'Valor', 'Status']],
                 body: agrupado[grupo].map((l: any) => [
                     new Date(l.DATATEND).toLocaleDateString('pt-BR'),
                     l.PACIENTE,
@@ -172,6 +173,7 @@ export const RelatorioItens: React.FC = () => {
                 })
             ]),
 
+
             startY: 25,
             theme: 'grid',
 
@@ -191,6 +193,7 @@ export const RelatorioItens: React.FC = () => {
                 3: { cellWidth: 30 },   // Plano
                 4: { cellWidth: 35, halign: 'right' } // Valor alinhado à direita
             }
+
         });
 
         doc.save("Reimpressao_Recibos.pdf");
@@ -224,29 +227,83 @@ export const RelatorioItens: React.FC = () => {
             return;
         }
 
-        const doc = new jsPDF();
+        const doc: any = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "letter"
+        });
 
-        let y = 20;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
 
-        recibosSelecionados.forEach((p: any) => {
+        recibosSelecionados.forEach((p: any, index: number) => {
 
             const subtotal = p.subtotal;
             const taxa = subtotal * 0.05;
-            const total = subtotal;
+            const total = subtotal - taxa;
 
-            doc.setFontSize(14);
-            doc.text(`Paciente: ${p.paciente}`, 14, y);
+            if (index > 0) {
+                doc.addPage();
+            }
 
-            y += 6;
+            const numeroRecibo = String(Date.now() + index).slice(-6).padStart(6, "0");
 
-            doc.setFontSize(11);
-            doc.text(`Médico: ${p.medico}`, 14, y);
+            // HEADER IGUAL AO RECIBO OFICIAL
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
 
-            y += 10;
+            doc.text("CAIXA DE HONORÁRIOS MÉDICOS", pageWidth / 2, 16, { align: "center" });
 
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+
+            doc.text(`Recibo Nº ${numeroRecibo}`, pageWidth - 20, 16, { align: "right" });
+
+            doc.text(
+                `Emitido em: ${new Date().toLocaleDateString("pt-BR")}`,
+                pageWidth - 20,
+                22,
+                { align: "right" }
+            );
+
+            doc.setFontSize(13);
+
+            doc.text(
+                "RECIBO DE ATENDIMENTO MÉDICO",
+                pageWidth / 2,
+                26,
+                { align: "center" }
+            );
+
+            doc.rect(14, 32, pageWidth - 28, 26);
+
+            doc.setFontSize(10);
+
+            doc.text(`Paciente: ${p.paciente}`, 18, 40);
+            doc.text(`Médico: ${p.medico}`, 18, 46);
+            doc.text(`Especialidade: ${p.especialidade || ""}`, 18, 52);
+
+            const primeiraParcela = p.parcelas[0];
+
+            if (primeiraParcela) {
+
+                doc.text(
+                    `Data Atendimento: ${new Date(primeiraParcela.DATATEND || Date.now()).toLocaleDateString("pt-BR")}`,
+                    120,
+                    40
+                );
+
+                doc.text(`Plano: Particular`, 120, 46);
+
+                doc.text(`Este recibo é a 2º Via`, 120, 52);
+            }
+
+            // TABELA
             autoTable(doc, {
 
-                head: [['Data', 'Paciente', 'Médico', 'Plano', 'Valor']],
+                startY: 65,
+
+                head: [['Data', 'Paciente', 'Médico', '     ', 'Valor']],
 
                 body: p.parcelas.map((l: any) => [
 
@@ -255,9 +312,7 @@ export const RelatorioItens: React.FC = () => {
                         : '',
 
                     l.PACIENTE,
-
                     l.MEDICO,
-
                     l.PLANO,
 
                     Number(l.VLPARCELA).toLocaleString('pt-BR', {
@@ -267,7 +322,7 @@ export const RelatorioItens: React.FC = () => {
 
                 ]),
 
-                startY: y,
+                theme: 'grid',
 
                 styles: {
                     fontSize: 10
@@ -279,9 +334,9 @@ export const RelatorioItens: React.FC = () => {
 
             });
 
-            y = (doc as any).lastAutoTable.finalY + 10;
+            let y = (doc as any).lastAutoTable.finalY + 10;
 
-            const direita = 140;
+            const direita = 166;
 
             doc.text(
                 `Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
@@ -315,38 +370,51 @@ export const RelatorioItens: React.FC = () => {
             y += 6;
             doc.text("Assinatura do Médico", 75, y);
 
-            y += 20;
+            const pageCount = doc.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.text("ACS.Info - Alex Caetano dos Santos | CHM Gestão", 14, 272);
+                doc.text(`Página ${i} de ${pageCount}`, 180, 272);
+            }
+            // BORDA DO RECIBO
+            doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
 
         });
 
         doc.save("Recibos.pdf");
-
     };
 
-    const pacientesAgrupados = Object.values(
 
-        lancamentos.reduce((acc: any, l: any) => {
 
-            if (!acc[l.PACIENTE]) {
+    const pacientesAgrupados = useMemo(() => {
 
-                acc[l.PACIENTE] = {
-                    paciente: l.PACIENTE,
-                    medico: l.MEDICO,
-                    especialidade: l.ESPECIALIDADE,
-                    parcelas: [],
-                    subtotal: 0
-                };
+        return Object.values(
 
-            }
+            lancamentos.reduce((acc: any, l: any) => {
 
-            acc[l.PACIENTE].parcelas.push(l);
-            acc[l.PACIENTE].subtotal += Number(l.VLPARCELA);
+                if (!acc[l.PACIENTE]) {
 
-            return acc;
+                    acc[l.PACIENTE] = {
+                        paciente: l.PACIENTE,
+                        medico: l.MEDICO,
+                        especialidade: l.ESPECIALIDADE,
+                        parcelas: [],
+                        subtotal: 0
+                    };
 
-        }, {})
-    );
+                }
 
+                acc[l.PACIENTE].parcelas.push(l);
+                acc[l.PACIENTE].subtotal += Number(l.VLPARCELA);
+
+                return acc;
+
+            }, {})
+
+        );
+
+    }, [lancamentos]);
 
     return (
         <div className={styles.container}>
@@ -357,7 +425,8 @@ export const RelatorioItens: React.FC = () => {
 
             <div className={styles.configGrid}>
                 <div className={styles.card}>
-                    <h3><Calendar size={18} /> Filtro Temporal</h3>
+                    <h3><Calendar size={28} /> Filtro Temporal</h3>
+
                     {flags.reimpressaoRecibos && (
                         <div className={styles.inputGroupVertical}>
                             <button
@@ -448,7 +517,7 @@ export const RelatorioItens: React.FC = () => {
                             gerarReimpressaoRecibos();
                             return;
                         }
-                        // gerarRelatorioMestre();
+                        gerarRelatorioMestre();
                     }}
                 >
                     <Printer size={20} /> Gerar PDF Analítico
@@ -470,10 +539,10 @@ export const RelatorioItens: React.FC = () => {
                                 <thead>
                                     <tr>
                                         <th></th>
-                                        <th>Data</th>
                                         <th>Paciente</th>
                                         <th>Médico</th>
-                                        <th style={{ textAlign: 'right' }}>Valor</th>
+                                        <th>Parcelas</th>
+                                        <th style={{ textAlign: 'right' }}>Subtotal</th>
                                     </tr>
                                 </thead>
 
@@ -530,7 +599,6 @@ export const RelatorioItens: React.FC = () => {
                             <button
                                 className={styles.btnPrimary}
                                 onClick={imprimirSelecionados}
-                            // onClick={gerarReimpressaoRecibos}
 
                             >
                                 Reimprimir Selecionados

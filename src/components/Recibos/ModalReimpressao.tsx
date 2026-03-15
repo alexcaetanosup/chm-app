@@ -34,7 +34,7 @@ export const ModalReimpressao = ({ recibos, onClose }: Props) => {
                     </button>
                 </div>
 
-                <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                <div style={{ maxHeight: "250px", overflowY: "auto" }}>
 
                     <table className={styles.table}>
 
@@ -92,51 +92,3 @@ export const ModalReimpressao = ({ recibos, onClose }: Props) => {
 
 
 
-// import { gerarReciboPDF } from "../../services/reciboPdfService";
-
-// interface Props {
-//     recibos: any[];
-//     onClose: () => void;
-// }
-
-// export const ModalReimpressao = ({ recibos, onClose }: Props) => {
-
-//     const imprimir = (rec: any) => {
-
-//         gerarReciboPDF(
-//             rec.parcelas,
-//             rec.dados,
-//             rec.paciente,
-//             rec.medico,
-//             rec.especialidade
-//         );
-
-//     };
-
-//     return (
-
-//         <div className="modal">
-
-//             <h3>Reimprimir Recibos</h3>
-
-//             {recibos.map((rec: any, index) => (
-
-//                 <div key={rec.id ?? index}>
-
-//                     Paciente: {rec.paciente}
-
-//                     <button onClick={() => imprimir(rec)}>
-//                         Imprimir
-//                     </button>
-
-//                 </div>
-
-//             ))}
-
-//             <button onClick={onClose}>Fechar</button>
-
-//         </div>
-
-//     );
-
-// };
