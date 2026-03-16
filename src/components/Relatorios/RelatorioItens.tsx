@@ -5,9 +5,12 @@ import {
     Calendar,
     CheckSquare,
     Filter,
+    LassoSelect,
+    PanelTopClose,
     Printer,
+    Repeat,
     Square,
-    Trash2
+    Trash2,
 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './RelatorioItens.module.css';
@@ -19,6 +22,7 @@ export const RelatorioItens: React.FC = () => {
     const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear().toString());
     const [modalRecibos, setModalRecibos] = useState(false);
     const [recibosSelecionados, setRecibosSelecionados] = useState<any[]>([]);
+
 
 
     const [flags, setFlags] = useState({
@@ -187,7 +191,7 @@ export const RelatorioItens: React.FC = () => {
             },
 
             columnStyles: {
-                0: { cellWidth: 25 },   // Data
+                0: { cellWidth: 25, halign: 'center' },   // Data
                 1: { cellWidth: 55 },   // Paciente
                 2: { cellWidth: 45 },   // Médico
                 3: { cellWidth: 30 },   // Plano
@@ -199,7 +203,6 @@ export const RelatorioItens: React.FC = () => {
         doc.save("Reimpressao_Recibos.pdf");
 
     };
-
     const toggleRecibo = (paciente: any) => {
 
         const existe = recibosSelecionados.find(
@@ -298,22 +301,22 @@ export const RelatorioItens: React.FC = () => {
                 doc.text(`Este recibo é a 2º Via`, 120, 52);
             }
 
-            // TABELA
+            //TABELA
             autoTable(doc, {
 
                 startY: 65,
 
-                head: [['Data', 'Paciente', 'Médico', '     ', 'Valor']],
+                head: [['Parcela', 'Vencimento', 'Valor']],
 
-                body: p.parcelas.map((l: any) => [
+                body: p.parcelas.map((l: any, index: number) => [
+
+                    index + 1,
+
+                    // (l.PARCELA),
 
                     l.DTPARCELA
                         ? new Date(l.DTPARCELA).toLocaleDateString('pt-BR')
                         : '',
-
-                    l.PACIENTE,
-                    l.MEDICO,
-                    l.PLANO,
 
                     Number(l.VLPARCELA).toLocaleString('pt-BR', {
                         style: 'currency',
@@ -329,36 +332,43 @@ export const RelatorioItens: React.FC = () => {
                 },
 
                 columnStyles: {
-                    4: { halign: 'right' }
+
+                    0: { cellWidth: 25, halign: 'center' }, // Nº parcela
+                    1: { cellWidth: 45, halign: 'center' },                   // Data vencimento
+                    2: { halign: 'right' }                  // Valor alinhado à direita
+
                 }
 
             });
 
             let y = (doc as any).lastAutoTable.finalY + 10;
 
-            const direita = 166;
+            // const direita = 166;
+            const direita1 = pageWidth - 50;
 
             doc.text(
                 `Subtotal: ${subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-                direita,
+                direita1,
                 y
             );
 
+            const direita2 = pageWidth - 50;
             y += 6;
 
             doc.text(
-                `Taxa 5%: ${taxa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-                direita,
+                `Taxa 5%:   ${taxa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+                direita2,
                 y
             );
 
+            const direita3 = pageWidth - 50;
             y += 6;
 
             doc.setFont("helvetica", "bold");
 
             doc.text(
                 `TOTAL: ${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-                direita,
+                direita3,
                 y
             );
 
@@ -427,47 +437,77 @@ export const RelatorioItens: React.FC = () => {
                 <div className={styles.card}>
                     <h3><Calendar size={28} /> Filtro Temporal</h3>
 
-                    {flags.reimpressaoRecibos && (
-                        <div className={styles.inputGroupVertical}>
-                            <button
-                                className={styles.btnPrimary}
-                                onClick={() => setModalRecibos(true)}
-                            >
-                                Selecionar Recibos
-                            </button>
-                            <span>
-                                {recibosSelecionados.length} recibo(s) selecionado(s)
-                            </span>
-                        </div>
-                    )}
-
                     {flags.porMedicoAno ? (
                         <div className={styles.inputGroupVertical}>
-                            <label>Selecione o Ano do Exercício:</label>
+                            <label className={styles.labelAno}>
+                                Selecione o Ano do Exercício:
+                            </label>
+
                             <select
                                 className={styles.selectAno}
                                 value={anoSelecionado}
                                 onChange={e => setAnoSelecionado(e.target.value)}
                             >
                                 {listaAnos.length > 0 ? (
-                                    listaAnos.map(ano => <option key={ano} value={ano}>{ano}</option>)
+                                    listaAnos.map(ano => (
+                                        <option key={ano} value={ano}>{ano}</option>
+                                    ))
                                 ) : (
-                                    <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
+                                    <option value={new Date().getFullYear()}>
+                                        {new Date().getFullYear()}
+                                    </option>
                                 )}
                             </select>
                         </div>
                     ) : (
+
                         <div className={styles.inputGroup}>
                             <div className={styles.dateField}>
-                                <label>Início</label>
+                                <label>Início   </label>
                                 <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
                             </div>
                             <div className={styles.dateField}>
-                                <label>Fim</label>
+                                <label>Fim </label>
                                 <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
                             </div>
                         </div>
                     )}
+                    {/* Botões de ação */}
+                    <div className={styles.actionArea}>
+                        <button
+                            className={styles.btnReset}
+                            onClick={() => {
+                                setModalRecibos(false);
+                                limparFiltros();
+                            }}
+                        >
+                            <Trash2 size={18} /> Limpar Filtros
+                        </button>
+
+                        {!flags.reimpressaoRecibos && (
+                            <button className={styles.btnPrimary}
+                                onClick={gerarRelatorioMestre}
+                            >
+                                <Printer size={18} /> Gerar PDF Analítico
+                            </button>
+                        )}
+
+                        {flags.reimpressaoRecibos && (
+                            <button
+                                className={styles.btnPrimary}
+                                onClick={() => {
+                                    setModalRecibos(true);
+                                    setTimeout(() => {
+                                        document.getElementById("recibos")?.scrollIntoView({
+                                            behavior: "smooth"
+                                        });
+                                    }, 100);
+                                }}
+                            >
+                                <LassoSelect size={18} /> Selecionar Recibos
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className={styles.card}>
@@ -490,129 +530,105 @@ export const RelatorioItens: React.FC = () => {
                             <span className={flags.porPlano ? styles.activeText : ''}>Plano / Convênio</span>
                         </div>
                         <div
-                            className={styles.flagItem}
-                            onClick={() => selecionarFlag('reimpressaoRecibos')}
-                        >
-                            {flags.reimpressaoRecibos
-                                ? <CheckSquare color="#38bdf8" />
-                                : <Square color="#94a3b8" />
-                            }
-
-                            <span className={flags.reimpressaoRecibos ? styles.activeText : ''}>
-                                Reimpressão de Recibos
-                            </span>
+                            className={styles.flagItem} onClick={() => selecionarFlag('reimpressaoRecibos')}>
+                            {flags.reimpressaoRecibos ? <CheckSquare color="#38bdf8" /> : <Square color="#94a3b8" />}
+                            <span className={flags.reimpressaoRecibos ? styles.activeText : ''}>Reimpressão de Recibos</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className={styles.actionArea}>
-                <button className={styles.btnReset} onClick={limparFiltros}>
-                    <Trash2 size={18} /> Limpar Filtros
-                </button>
-                <button
-                    className={styles.btnPrimary}
-                    onClick={() => {
-                        if (flags.reimpressaoRecibos) {
-                            gerarReimpressaoRecibos();
-                            return;
-                        }
-                        gerarRelatorioMestre();
-                    }}
-                >
-                    <Printer size={20} /> Gerar PDF Analítico
-                </button>
-            </div>
+            {
+                modalRecibos && (
 
-            {modalRecibos && (
+                    <div className={styles.modalOverlay}>
 
-                <div className={styles.modalOverlay}>
+                        <div className={styles.modalContent} style={{ maxWidth: "800px" }}>
+                            <div>
+                                <h2>Selecionar Recibos      <Filter size={18} style={{ marginLeft: 320 }} />
+                                    {recibosSelecionados.length} recibo(s) selecionado(s)</h2>
+                            </div>
+                            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
 
-                    <div className={styles.modalContent} style={{ maxWidth: "800px" }}>
+                                <table className={styles.table}>
 
-                        <h2>Selecionar Recibos</h2>
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Paciente</th>
+                                            <th>Médico</th>
+                                            <th>Parcelas</th>
+                                            <th style={{ textAlign: 'right' }}>Subtotal</th>
+                                        </tr>
+                                    </thead>
 
-                        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                                    <tbody>
 
-                            <table className={styles.table}>
+                                        {pacientesAgrupados.map((p: any, index: number) => {
 
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Paciente</th>
-                                        <th>Médico</th>
-                                        <th>Parcelas</th>
-                                        <th style={{ textAlign: 'right' }}>Subtotal</th>
-                                    </tr>
-                                </thead>
+                                            const selecionado = recibosSelecionados.find(
+                                                r => r.paciente === p.paciente
+                                            );
 
-                                <tbody>
+                                            return (
 
-                                    {pacientesAgrupados.map((p: any, index: number) => {
+                                                <tr key={index}>
 
-                                        const selecionado = recibosSelecionados.find(
-                                            r => r.paciente === p.paciente
-                                        );
+                                                    <td>
 
-                                        return (
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={!!selecionado}
+                                                            onChange={() => toggleRecibo(p)}
+                                                        />
 
-                                            <tr key={index}>
+                                                    </td>
 
-                                                <td>
+                                                    <td>{p.paciente}</td>
 
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={!!selecionado}
-                                                        onChange={() => toggleRecibo(p)}
-                                                    />
+                                                    <td>{p.medico}</td>
 
-                                                </td>
+                                                    <td>{p.parcelas.length}</td>
 
-                                                <td>{p.paciente}</td>
+                                                    <td className={styles.valorDireita}>
+                                                        {p.subtotal.toLocaleString('pt-BR', {
+                                                            style: 'currency',
+                                                            currency: 'BRL'
+                                                        })}
+                                                    </td>
 
-                                                <td>{p.medico}</td>
+                                                </tr>
 
-                                                <td>{p.parcelas.length}</td>
+                                            );
 
-                                                <td className={styles.valorDireita}>
-                                                    {p.subtotal.toLocaleString('pt-BR', {
-                                                        style: 'currency',
-                                                        currency: 'BRL'
-                                                    })}
-                                                </td>
+                                        })}
 
-                                            </tr>
+                                    </tbody>
+                                </table>
 
-                                        );
+                            </div>
 
-                                    })}
-
-                                </tbody>
-
-
-
-                            </table>
-
-                        </div>
-
-                        <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-                            <button
-                                className={styles.btnPrimary}
-                                onClick={imprimirSelecionados}
-
-                            >
-                                Reimprimir Selecionados
-                            </button>
-                            <button
-                                className={styles.btnReset}
-                                onClick={() => setModalRecibos(false)}
-                            >
-                                Fechar
-                            </button>
+                            <div style={{ marginTop: 20, display: "flex", gap: 10, marginLeft: 260 }}>
+                                <button
+                                    className={styles.btnPrimary}
+                                    onClick={imprimirSelecionados}
+                                ><Repeat size={18} />
+                                    Reimprimir Selecionados
+                                </button>
+                                <button
+                                    className={styles.btnReset}
+                                    onClick={() => setModalRecibos(false)}
+                                ><PanelTopClose size={18} />
+                                    Fechar
+                                </button>
+                                <div id="recibos">
+                                    {/* conteúdo da seção */}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div >
     );
 };

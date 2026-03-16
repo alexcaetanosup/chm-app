@@ -70,7 +70,8 @@
 .flagGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  /* grid-template-columns: 0.5fr 0.5fr 0.5fr; */
+  gap: 5px;
 }
 
 .flagItem {
@@ -97,11 +98,13 @@
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
+  margin-top: 110px;
 }
 
 .btnPrimary {
-  /* display: flex; */
-  /* align-items: center; */
+  display: flex;
+  align-items: center;
+  scroll-behavior: smooth;
   gap: 10px;
   padding: 14px 40px;
   background: #1e293b;
@@ -117,11 +120,11 @@
   align-items: center;
   gap: 10px;
   padding: 14px 25px;
-  background: #fff;
-  color: #64748b;
+  background: #efebeb;
+  color: #2e87ad;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 }
 .tabelaRelatorio {
@@ -144,4 +147,21 @@
 .tabelaRelatorio th:last-child,
 .tabelaRelatorio td:last-child {
   width: 180px;
+}
+html {
+  scroll-behavior: smooth;
+}
+
+.inputGroupVertical {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.labelAno {
+  font-weight: 500;
+}
+
+.selectAno {
+  width: 120px;
 }
