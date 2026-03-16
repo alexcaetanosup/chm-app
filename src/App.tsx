@@ -15,13 +15,14 @@ import React, { useState } from 'react';
 import './App.css';
 
 // Importação dos componentes
-import { Dashboard } from './components/Dashboard/Dashboardd';
+import { Dashboard } from './components/Dashboard/Dashboard';
 import { Especialidades } from './components/Especialidades/Especialidades';
 import { Lancamentos } from './components/Lancamentos/Lancamentos';
 import { Medicos } from './components/Medicos/Medicos';
 import { Pacientes } from './components/Pacientes/Pacientes';
 import { RelatorioItens } from './components/Relatorios/RelatorioItens';
 import { Relatorios } from './components/Relatorios/Relatorios';
+import { Sobre } from './components/Sobre/Sobre';
 
 // Importação do componente de teste
 
@@ -41,6 +42,7 @@ const App: React.FC = () => {
       case 'relatorios': return <Relatorios />;
       case 'relatorio-itens': return <RelatorioItens />;
       case 'dashboard': return <Dashboard />;
+      case 'sobre': return <Sobre />;
       default: return <Pacientes />;
     }
   };
@@ -55,12 +57,6 @@ const App: React.FC = () => {
 
         <nav>
           <ul className="nav-list">
-            <MenuItem
-              label="Dashboard"
-              icon={<LayoutDashboard size={20} />}
-              active={abaAtiva === 'dashboard'}
-              onClick={() => setAbaAtiva('dashboard')}
-            />
             <MenuItem
               label="Pacientes"
               icon={<Users size={20} />}
@@ -115,6 +111,18 @@ const App: React.FC = () => {
                 </ul>
               )}
             </li>
+            <MenuItem
+              label="Dashboard"
+              icon={<LayoutDashboard size={20} />}
+              active={abaAtiva === 'dashboard'}
+              onClick={() => setAbaAtiva('dashboard')}
+            />
+            <MenuItem
+              label="Sobre"
+              icon={<FileText size={20} />}
+              active={abaAtiva === 'sobre'}
+              onClick={() => setAbaAtiva('sobre')}
+            />
           </ul>
         </nav>
       </aside>
