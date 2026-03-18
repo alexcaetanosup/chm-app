@@ -24,8 +24,6 @@ import { RelatorioItens } from './components/Relatorios/RelatorioItens';
 import { Relatorios } from './components/Relatorios/Relatorios';
 import { Sobre } from './components/Sobre/Sobre';
 
-// Importação do componente de teste
-
 // DEFINIÇÃO GLOBAL DO NOME
 export const APP_TITLE = "CHM - Caixa de Honorários Médicos";
 

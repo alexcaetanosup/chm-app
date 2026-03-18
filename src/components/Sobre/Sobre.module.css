@@ -1,33 +1,67 @@
-.sobreContainer {
-  max-width: 900px;
-  margin: auto;
-  padding: 30px;
+.container {
+  padding: 40px;
 }
 
-.descricao {
-  font-size: 16px;
+.titulo {
   margin-bottom: 20px;
 }
 
-section {
-  margin-top: 25px;
+.cards {
+  display: flex;
+  gap: 30px;
 }
 
-section h2 {
-  margin-bottom: 10px;
-  color: #333;
+.card {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-ul {
+.card h2 {
+  margin-bottom: 15px;
+}
+
+.card p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.card ul {
   padding-left: 20px;
+  margin-bottom: 15px;
 }
 
-li {
-  margin-bottom: 6px;
+.autor {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
+.foto {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.info {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.descricao {
+  text-align: justify;
+}
 .rodape {
-  margin-top: 40px;
-  font-size: 13px;
-  color: #777;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  /* background-color: #333; */
+  /* color: white; */
+  margin-top: auto;
+  text-align: center;
+  padding: 10px 0;
 }

@@ -1,6 +1,10 @@
-export interface Especialidades {
+export interface Pacientes {
   id: number;
-  descricao: string;
+  nome: string;
+  cpf: string;
+  dataNascimento: string;
+  telefone: string;
+  convenio?: string;
 }
 
 export interface Medicos {
@@ -12,13 +16,9 @@ export interface Medicos {
   status: 'Ativo' | 'Inativo';
 }
 
-export interface Pacientes {
+export interface Especialidades {
   id: number;
-  nome: string;
-  cpf: string;
-  dataNascimento: string;
-  telefone: string;
-  convenio?: string;
+  descricao: string;
 }
 
 export interface Lancamentos {

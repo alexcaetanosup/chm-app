@@ -1,84 +1,104 @@
 import React from "react";
-import { APP_TITLE } from "../../App";
 import styles from "./Sobre.module.css";
 
 export const Sobre: React.FC = () => {
     return (
-        <div className={styles.sobreContainer}>
+        <div className={styles.container}>
 
-            <h1>{APP_TITLE}</h1>
+            <h1 className={styles.titulo}>Sobre</h1>
 
-            <p className={styles.descricao}>
-                O <strong>CHM – Caixa de Honorários Médicos</strong> é um sistema
-                desenvolvido para auxiliar no controle financeiro e administrativo
-                de honorários médicos em clínicas e consultórios.
-            </p>
+            <div className={styles.cards}>
 
-            <section>
-                <h2>Objetivo</h2>
-                <p>
-                    O sistema tem como objetivo organizar os registros financeiros
-                    relacionados aos atendimentos médicos, permitindo um controle
-                    claro e eficiente dos valores recebidos e pendentes.
-                </p>
-            </section>
+                {/* CARD SISTEMA */}
+                <div className={styles.card}>
 
-            <section>
-                <h2>Principais Recursos</h2>
+                    <h2>CHM App</h2>
 
-                <ul>
-                    <li>Cadastro de pacientes</li>
-                    <li>Cadastro de médicos</li>
-                    <li>Gerenciamento de especialidades</li>
-                    <li>Controle de lançamentos financeiros</li>
-                    <li>Relatórios gerenciais</li>
-                    <li>Painel de indicadores (Dashboard)</li>
-                </ul>
-            </section>
+                    <p className={styles.descricao}>
+                        O CHM App é um sistema desenvolvido para controle financeiro
+                        de honorários profissionais, permitindo o registro de
+                        lançamentos, acompanhamento de pagamentos e análise de dados
+                        financeiros através de relatórios e dashboard. O sistema foi projetado com foco em simplicidade,
+                        organização e produtividade.
+                    </p>
 
-            <section>
-                <h2>Benefícios</h2>
+                    <div className={styles.descricao}>
+                        <strong>Tecnologias utilizadas:</strong>
+                    </div>
 
-                <ul>
-                    <li>Organização das informações financeiras</li>
-                    <li>Controle de honorários médicos</li>
-                    <li>Facilidade na geração de relatórios</li>
-                    <li>Melhor acompanhamento da movimentação financeira</li>
-                </ul>
-            </section>
+                    <ul>
+                        <li>React + TypeScript</li>
+                        <li>Node.js</li>
+                        <li>Express</li>
+                        <li>CSS Modules</li>
+                    </ul>
 
-            <section>
-                <h2>Tecnologia</h2>
+                    <section>
+                        <h3>Principais Recursos</h3>
+                        <ul>
+                            <li>Cadastro de pacientes</li>
+                            <li>Cadastro de médicos</li>
+                            <li>Gerenciamento de especialidades</li>
+                            <li>Controle de lançamentos financeiros</li>
+                            <li>Relatórios gerenciais</li>
+                            <li>Painel de indicadores (Dashboard)</li>
+                        </ul>
+                    </section>
+                    <h3 className={styles.info}>
+                        <strong>Versão:</strong> 1.0
+                    </h3>
 
-                <p>
-                    O sistema foi desenvolvido utilizando tecnologias modernas da web,
-                    como <strong>React</strong>, <strong>TypeScript</strong> e
-                    <strong> Node.js</strong>, garantindo desempenho, segurança
-                    e facilidade de manutenção.
-                </p>
-            </section>
-            <section>
-                <h2>Desenvolvimento</h2>
+                </div>
 
-                <p>
-                    Sistema desenvolvido por: <strong>ACS-info - Alex Caetano dos Santos - (15) 99696-5727</strong>.
-                </p>
+                {/* ----------------------------------------------------------------------------------- */}
 
-                <p>
-                    Desenvolvedor responsável pela concepção, arquitetura e
-                    implementação do sistema CHM.
-                </p>
+                {/* CARD DESENVOLVEDOR */}
+                <div className={styles.card}>
 
-                <p>
-                    Tecnologias utilizadas: React, TypeScript, Node.js e API REST.
-                </p>
+                    <h2>Desenvolvedor</h2>
 
-            </section>
+                    <div className={styles.autor}>
 
-            <div className={styles.rodape}>
-                <p>© {new Date().getFullYear()} - Sistema CHM - Todos os direitos reservados</p>
+                        {/* 
+                        <img src="../components/Img/Alex.png"
+                            alt="Desenvolvedor"
+                            className={styles.foto}
+                        /> */}
+
+
+                        <p className={styles.nome}>
+                            <h2>ACS.Info</h2>
+                            <h3>+55 (15) 99696-5727</h3>
+                            <h3>Alex Caetano dos Santos</h3>
+                        </p>
+                    </div>
+
+                    <p className={styles.descricao}>
+                        Profissional responsável pelo desenvolvimento do sistema,
+                        incluindo estrutura do backend, interface do usuário e
+                        organização das funcionalidades do aplicativo.
+                    </p>
+                    <p>
+                        Este projeto foi criado com foco em organização,
+                        produtividade e controle financeiro no sistema CHM.
+                    </p>
+
+                    <div className={styles.info}>
+                        <strong>Contato:</strong>
+                    </div>
+
+                    <ul>
+                        <li>e-mail:</li>
+                        <a href="mailto:alexcaetanosuporte@gmail.com" target="_blank">alexcaetanosuporte@gmail.com</a>
+                        <li>LinkedIn:</li>
+                        <a href="https://www.linkedin.com/in/alex-caetano-dos-santos" target="_blank">https://www.linkedin.com/in/alex-caetano-dos-santos</a>
+                    </ul>
+                    <footer className={styles.rodape}>© {new Date().getFullYear()} - Sistema CHM - Todos os direitos reservados</footer>
+                </div>
             </div>
-
-        </div>
+        </div >
     );
 };
+
+
+
