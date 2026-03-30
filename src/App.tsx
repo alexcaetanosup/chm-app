@@ -2,10 +2,12 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  Columns3Cog,
+  DatabaseBackup,
   DollarSign,
   FileText,
+  Info,
   LayoutDashboard,
-  ListFilter,
   Stethoscope,
   Users
 } from 'lucide-react';
@@ -15,6 +17,7 @@ import React, { useState } from 'react';
 import './App.css';
 
 // Importação dos componentes
+import { Backup } from './components/Backup/Backup';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { Especialidades } from './components/Especialidades/Especialidades';
 import { Lancamentos } from './components/Lancamentos/Lancamentos';
@@ -40,6 +43,7 @@ const App: React.FC = () => {
       case 'relatorios': return <Relatorios />;
       case 'relatorio-itens': return <RelatorioItens />;
       case 'dashboard': return <Dashboard />;
+      case 'backup': return <Backup />;
       case 'sobre': return <Sobre />;
       default: return <Pacientes />;
     }
@@ -96,7 +100,7 @@ const App: React.FC = () => {
                 <ul className="submenu-list">
                   <SubMenuItem
                     label="Painel Geral"
-                    icon={<ListFilter size={18} />}
+                    icon={<Columns3Cog size={18} />}
                     active={abaAtiva === 'relatorios'}
                     onClick={() => setAbaAtiva('relatorios')}
                   />
@@ -116,8 +120,14 @@ const App: React.FC = () => {
               onClick={() => setAbaAtiva('dashboard')}
             />
             <MenuItem
+              label="Backup"
+              icon={<DatabaseBackup size={20} />}
+              active={abaAtiva === 'backup'}
+              onClick={() => setAbaAtiva('backup')}
+            />
+            <MenuItem
               label="Sobre"
-              icon={<FileText size={20} />}
+              icon={<Info size={20} />}
               active={abaAtiva === 'sobre'}
               onClick={() => setAbaAtiva('sobre')}
             />
