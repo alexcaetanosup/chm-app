@@ -232,3 +232,15 @@
   padding: 30px;
   position: relative;
 }
+/* Garante que nada esconda nossos botões flutuantes */
+#floating-actions {
+  position: relative;
+  z-index: 999999;
+}
+
+/* Força o display se o Tailwind ou CSS modular estiver falhando */
+.wa-component-wrapper,
+.wa-main-link {
+  display: flex !important;
+  visibility: visible !important;
+}

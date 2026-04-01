@@ -1,3 +1,4 @@
+
 import {
   ChevronDown,
   ChevronRight,
@@ -17,6 +18,7 @@ import React, { useState } from 'react';
 import './App.css';
 
 // Importação dos componentes
+import { AICHM } from './components/AICHM/AICHM';
 import { Backup } from './components/Backup/Backup';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { Especialidades } from './components/Especialidades/Especialidades';
@@ -26,6 +28,7 @@ import { Pacientes } from './components/Pacientes/Pacientes';
 import { RelatorioItens } from './components/Relatorios/RelatorioItens';
 import { Relatorios } from './components/Relatorios/Relatorios';
 import { Sobre } from './components/Sobre/Sobre';
+import WhatsAppButton from './components/WhatsApp/WhatsAppButton';
 
 // DEFINIÇÃO GLOBAL DO NOME
 export const APP_TITLE = "CHM - Caixa de Honorários Médicos";
@@ -140,6 +143,8 @@ const App: React.FC = () => {
           {renderConteudo()}
         </div>
       </main>
+      <WhatsAppButton />
+      <AICHM />
     </div>
   );
 };

@@ -67,8 +67,8 @@ export const Sobre: React.FC = () => {
 
 
                         <p className={styles.nome}>
-                            <h2>ACS.Info</h2>
-                            <h3>+55 (15) 99696-5727</h3>
+                            <h2>ACSInfo</h2>
+                            <h3>+55 (15) 99768-6416</h3>
                             <h3>Alex Caetano dos Santos</h3>
                         </p>
                     </div>
@@ -87,12 +87,12 @@ export const Sobre: React.FC = () => {
                         <strong>Contato:</strong>
                     </div>
 
-                    <ul>
-                        <li>e-mail:</li>
-                        <a href="mailto:alexcaetanosuporte@gmail.com" target="_blank">alexcaetanosuporte@gmail.com</a>
-                        <li>LinkedIn:</li>
-                        <a href="https://www.linkedin.com/in/alex-caetano-dos-santos" target="_blank">https://www.linkedin.com/in/alex-caetano-dos-santos</a>
+                    <ul className={styles.gridLinks}>
+                        <li><a href="https://acsinfo.net.br/" target="_blank" rel="noopener noreferrer">Web Site</a></li>
+                        <li><a href="mailto:alexcaetanosuporte@gmail.com" target="_blank">e-mail</a></li>
+                        <li><a href="https://www.linkedin.com/in/alex-caetano-dos-santos" target="_blank">Linkedin</a></li>
                     </ul>
+
                     <footer className={styles.rodape}>© {new Date().getFullYear()} - Sistema CHM - Todos os direitos reservados</footer>
                 </div>
             </div>
